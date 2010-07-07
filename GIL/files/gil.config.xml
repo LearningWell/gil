@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Configuration template file for GIL. Modify this file for each integration solution.
+-->
+<configuration>
+    <appSettings>
+        <!-- The qualified name of the class to be instantiated and used as the adapter facing the process models.
+        Custom settings for this adapter can be given under the adapaterSettings section below. -->
+        <add key="processModelAdapter" value="gil.io.example.ExamplePMAdapter" />
+
+        <!-- The qualified name of the class to be instantiated and used as the adapter facing the external system.
+        Custom settings for this adapter can be given under the adapaterSettings section below. -->
+        <add key="externalSystemAdapter" value="gil.io.example.ExampleESAdapter" />
+
+        <!-- The relative or absolute path to the signal exchange list. -->
+        <add key="signalExchangeList" value="example.sel" />
+
+        <!-- The minimum interval of transferring data from the process models to the external system even when the
+        process models are in freeze (idle). Normally data is transferred at the same rate as the external system
+        operating frequency. Idle transfers are suppressed if 'value' is set to zero. Value given in milliseconds.
+
+        This setting can also be used when data transfers from the process model to the external system are not
+        triggered by the process model frame counter. In that case, set this value to the requested transfer rate.
+        -->
+        <add key="idleProcessDataTransferInterval" value="30000" />
+
+        <!-- The readSignalData operation on the ES-adapter is called every 'value' millisecond. -->
+        <add key="esAdapterReadPollRate" value="200" />
+
+        <!-- Adapters receive their process data in ByteBuffers. This parameters sets the byte order the
+        PM-adapter expects {BIG_ENDIAN | LITTLE_ENDIAN}.
+
+        GIL do not prescribe a certain byte order. However, in each case of a new integration solution the byte order
+        has to be taken into consideration if either the PM-adapter or the ES-adapter uses direct access to the
+        bytes in the byte buffers. In that case, the byte order must be the same for both the ES-adapter and
+        the PM-adapter or else the data must be processed to handle the difference in byte order. Using this strategy
+        a integration of two systems using the same byte order can be built with minimal overhead. -->
+        <add key="pmAdapterByteOrder" value="LITTLE_ENDIAN" />
+
+        <!-- Adapters receive their process data in ByteBuffers. This parameters sets the byte order the
+        ES-adapter expects {BIG_ENDIAN | LITTLE_ENDIAN}.
+        
+        GIL do not prescribe a certain byte order. However, in each case of a new integration solution the byte order
+        has to be taken into consideration if either the PM-adapter or the ES-adapter uses direct access to the
+        bytes in the byte buffers. In that case, the byte order must be the same for both the ES-adapter and
+        the PM-adapter or else the data must be processed to handle the difference in byte order. Using this strategy
+        a integration of two systems using the same byte order can be built with minimal overhead. -->
+        <add key="esAdapterByteOrder" value="LITTLE_ENDIAN" />
+    </appSettings>
+
+    <!-- This section contains adapter specific configuration parameters. See documentation for each adapter for a
+    list of parameters and their usage. -->
+    <adapterSettings>
+        <gil.io.example.ExampleESAdapter>
+            <add key="operatingFrequency" value="1" />
+        </gil.io.example.ExampleESAdapter>
+        <!--
+        <gil.io.example.ExamplePMAdapter>
+            <add key="" value="" />
+            <add key="" value="" />
+        </gil.io.example.ExamplePMAdapter> -->
+	</adapterSettings>
+
+    <!-- This section lists the stages to be plugged in the transfer pipeline. The stages will be called in the
+    same order as listed. The given id for each stage must be unique within the transfer pipeline. -->
+    <transferPipeline>
+		<!--
+        <stage id="convStage1">gil.core.ConvertStage</stage>
+		-->
+    </transferPipeline>
+
+    <!-- This section contains pipeline stage specific configuration parameters. See documentation for each pipeline stage for a
+    list of parameters and their usage. -->
+    <pipelineStageSettings>
+        <convStage1>
+            <add key="" value="" />
+        </convStage1>
+    </pipelineStageSettings>
+
+    <!-- This section contains parameters for the log4j framework. By changing these settings you can for 
+    example direct log output from a certain class or package, on a certain log level, to a file of your choice.
+    Please see the log4j documentaion for further details.
+
+    If logfiles shall be accessible from the GIL http API and the GIL web user interface, files shall be
+    written to 'logfiles/<filename.log>' -->
+    <log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+        <appender name="ConsoleAppender" class="org.apache.log4j.ConsoleAppender">
+            <layout class="org.apache.log4j.PatternLayout">
+                <param name="ConversionPattern" value="%d{dd/MM HH:mm:ss} %-5p %c{2} - %m%n"/>
+            </layout>
+        </appender>
+        <appender name="FileAppender" class="org.apache.log4j.RollingFileAppender">
+            <param name="File" value="logfiles/example.log" />
+            <param name="MaxFileSize" value="2MB" />
+            <param name="MaxBackupIndex" value="5" />
+            <layout class="org.apache.log4j.PatternLayout">
+                <param name="ConversionPattern" value="%d{dd/MM HH:mm:ss} [%t] %-5p %c{2} - %m%n"/>
+            </layout>
+        </appender>
+        <root>
+            <priority value ="error" />
+            <appender-ref ref="ConsoleAppender"/>
+            <appender-ref ref="FileAppender"/>
+        </root>
+        <logger name="gil.io.example">
+          <level value="debug"/>
+        </logger>        
+    </log4j:configuration>
+</configuration>
+

@@ -1,0 +1,12 @@
+gil
+gil.common
+gil.core
+gil.io
+gil.io.example
+gil.io.stages
+gil.web
+gil.web.html
+gil.web.html.forms
+gil.web.html.page
+gil.web.jaxb
+gil.web.resources

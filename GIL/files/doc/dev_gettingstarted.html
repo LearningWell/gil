@@ -1,0 +1,122 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Getting started</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link href="docstyle.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="container">
+  <p><a href="index.html" target="">&lt;&lt;&nbsp;Back to GIL&nbsp;Documentation</a></p>
+  <h2>Getting started</h2>
+  <p>This tutorial describes the procedure of creating a integration solution using the GIL framework.</p>
+  <h3>Prerequisites</h3>
+  <table>
+    <tr><td>Java JDK 6</td><td>Is the Java development toolkit necessary for building solutions around GIL</td><td><a href="http://java.sun.com/javase/downloads/widget/jdk6.jsp">Download</a></td>
+    </tr>
+    <tr><td>NetBeans 6.8</td><td>NetBeans is not necessary for GIL development. However this tutorial is intended to be as easy as possible
+            and NetBeans is a great tool to make the process easier.</td><td><a href="http://netbeans.org/downloads/index.html">Download</a></td>
+    </tr>
+  </table>
+  <h3>Setup the initial project in NetBeans</h3>  
+    <h4>Add a new project</h4> Select New Project from the File menu. Select Java, Java Application and click Next. Give the application a name and path.
+        Make sure 'Use Dedicated Folder For Storing Libraries' is unchecked and click Finish.
+    <h4>Add the necessary GIL libraries</h4>
+    <ol>
+        <li>Unpack the GIL package gil-x.x.zip in the root of your project folder. When unpacked, the project folder shall contain two
+            additional folders: lib and files together with the already existing src, test etc.</li>
+        <li>Add the denpendencies: Expand the project node in the project browser. Right click on the Libraries node and
+            select Add JAR/Folder. Locate the unpacked lib folder and select and add all JARs in that folder. All jar files shall now
+            be listed under the Libraries node. </li>
+        <li>There are javadoc documentation for the GIL framework for code completion and on-line help. To add javadoc: right click on the Libraries node in the project browser window and
+            select properties. In the opened window select the Libraries category. Select the gil-x.x.jar and click Edit. Select Browse for javadoc and locate
+            the unpacked files/doc/javadoc folder. Add this folder by click open followed by OK and OK. You can now right click the gil-x.x.jar node in the project
+            browser and select Show Javadoc.</li>
+    </ol>
+    <h3>Configuration</h3>
+    There is one configuration file with settings for the GIL.
+    <ol>
+        <li>Copy the gil.config.xml file from the files folder to the project root folder.</li>
+        <li>Edit the gil.config.xml and make these two changes:
+    <div class="sourcecode">
+      <pre>
+
+&lt;add key="processModelAdapter" value="gil.io.example.ExamplePMAdapter" /&gt;
+&lt;add key="externalSystemAdapter" value="gil.io.example.ExampleESAdapter" /&gt;
+      </pre>
+    </div>
+            These two changes tells the GIL runtime which adapters to use for interfacing the process model and the external system.
+            In this tutorial two example adapters are used. These adapters are included in the GIL package.
+            Leave the rest of the parameters in the configuration file as is.
+        </li>
+    </ol>
+    <h3>Data to exchange</h3>
+    The GIL must be aware of the signal values to transfer from/to the external system and the process model.
+    This is done by editing a signal exchange list (SEL).
+    <ol>
+        <li>Copy the example.sel file from the files folder to the project root folder.</li>
+        <li>This should be the content of the example.sel file:
+    <div class="sourcecode">
+      <pre>
+! This is an example signal exchange list. To work properly with the example adapters in the gil.io.example
+! package this example SEL may only contain Float32 values.
+!---------------------------------- Mandatory attributes -------------------------------------|---- Custom attributes ----|
+Type        DataType       Length  Direction PMID             ESID        Description          ESMin   ESMax  PMMin  PMMax
+Analog      Float32        1       ToPM      pm0              es1         "Example signal 0"   0       20     100     500
+Analog      Float32        3       ToPM      pmA1             esA1        "An array example"   --      --     --      --
+Analog      Float32        1       ToES      pm2              es2         "Example signal 2"   0       10000  0       100
+Analog      Float32        4       ToES      pmA2             esA2        "An array example"   0       10000  0       100
+      </pre>
+    </div>
+            Since the example adapters only are build for float values no other datatypes than Float32 may be added to the SEL file in this example.
+        </li>
+    </ol>
+
+    <h3>Write java source</h3>
+    <p>The entry point for your integration solution is the Main.java file created when you created the project.</p>
+    <p>Open the Main.java file and alter the content to look like this (except the package declaration that may be
+        different depending on the naming of your project):</p>
+    
+    <div class="sourcecode">
+      <pre>
+package demointegration;
+
+import gil.GIL;
+
+public class Main {
+
+    public static void main(String[] args) throws Exception {
+        GIL.instance().start(9980);
+        System.out.println("Hit Enter to quit...");
+        System.in.read();
+        GIL.instance().stop();
+    }
+}
+      </pre>
+    </div>    
+    <p>GIL.instance().start(9980) Requests the singleton GIL instance and starts the GIL runtime, having the
+        built in web server listening on port 9980.</p>
+    <p>This is pretty much what have to be done in the simplest GIL application.</p>    
+
+    <h3>Do the test run</h3>
+    <p>Right click your project in the project browser and select Run (or just hit F6).</p>
+    <p>When the application is started you will see debug printouts in the Output window. If it is not visible, select
+        Output | Output from the Window menu. </p>
+    <p>In the output window you will see the "fake" values transferred between the
+    example adapters for the process model and the external system. The example adapter for the process model also
+    generates simulator commands:</p>
+            <ul>
+                <li>Every minute at second 0 it generates a LOAD_IC command.</li>
+                <li>Every minute at second 15 it generates a RUN command.</li>
+                <li>Every minute at second 55 it generates a FREEZE command.</li>
+            </ul>
+
+    <h3>Using the Web-interface</h3>
+    <p>When you application is running, direct you web-browser to http://localhost:9980/index.html. The GIL web interface
+    is presented. From here you can control and monitor GIL.</p>
+  <div id="footer">
+    <a href="/index.html">homepage</a>
+    <a href="http://www.mitchinson.net" target="_blank"> | Design by www.mitchinson.net</a>
+  </div>
+</div>
+</body>
+</html>

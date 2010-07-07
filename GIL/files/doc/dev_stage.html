@@ -1,0 +1,48 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Developing Pipeline Stages</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link href="docstyle.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="container">
+  <p><a href="index.html" target="">&lt;&lt;&nbsp;Back to GIL&nbsp;Documentation</a></p>
+  <h2>Developing Pipeline Stages</h2>
+  <p>All signal data transferred between the Process Model and the External System passes the Transfer Pipeline.
+      The Transfer Pipeline is a chain of stages where each stage can monitor or process the passing data. New stages are developed
+      by implementing the <a href="javadoc/gil/io/IPipelineStage.html">IPipelineStage</a> interface.
+  </p>
+  <h3>Processing</h3>
+  <p>Calls to the Transfer Pipeline and the stages are done within the same thread handling the PM-adapter. The time of processing
+      and the consumed CPU has to be taken into consideration since it may affect the communication with the Process Model resulting
+      in, for example, lost frames.</p>  
+  <h3>Setup</h3>
+  <p>Initially <a href="javadoc/gil/io/IPipelineStage.html#setup(java.lang.String, gil.core.SignalMetadata[], gil.core.SignalMetadata[], gil.common.Parameters)">setup()</a>
+      is called by GIL. In this call the stage is handed a specification describing all signals to be passing the stage when
+      signal data is transferred  between the process model and the external system. </p>
+  <h4>Configuration</h4>
+  <p>In the <a href="javadoc/gil/io/IPipelineStage.html#setup(java.lang.String, gil.core.SignalMetadata[], gil.core.SignalMetadata[], gil.common.Parameters)">setup()</a> 
+      call, a stage is also handed a implementation specific configuration: GIL reads the <a href="../gil.config.xml">gil.config.xml</a> configuration file and parses the 'pipelineStageSettings' section containing stage
+          specific configuration parameters. A <a href="javadoc/gil/common/Parameters.html">Parameters</a> object is created and handed to the stage.</p>
+
+  <h3>Data flow</h3>
+  <img src="images/transferPipeline.png" alt=""/>
+  <p>When data is transferred between the Process Model and the External System the
+  <a href="javadoc/gil/io/IPipelineStage.html#processSignals(java.nio.ByteBuffer, gil.core.SignalMetadata.DataflowDirection)">processSignals()</a> is called on each stage in turn.
+  A stage can just monitor the data but may also process and modify the data.</p>
+
+  <h3>Control commands</h3>
+  <p>Control commands are executed on the stage as a result of a call on the GIL http API or web interface.</p>
+  <p>A stage implementation may or may not supply control commands. By implementing <a href="javadoc/gil/io/IPipelineStage.html#availableCommands()">availableControlCommands()</a> a list
+      of possible control commands and there parameters can be supplied to GIL. If there are no control commands available an empty collection
+      shall be returned.</p>
+  <p>GIL will call <a href="javadoc/gil/io/IPipelineStage.html#invokeControlCommand(gil.core.Command)">invokeControlCommand()</a> to
+  execute control commands on a stage.</p>
+
+  <div id="footer">
+    <a href="/index.html">homepage</a>
+    <a href="http://www.mitchinson.net" target="_blank"> | Design by www.mitchinson.net</a>
+  </div>
+</div>
+</body>
+</html>

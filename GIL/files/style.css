@@ -1,0 +1,300 @@
+body {
+margin: 0 auto;
+padding: 0;
+font: 0.8em verdana, "Trebuchet MS", arial, sans-serif;
+text-align: center;
+line-height: 1.7em;
+color: #000;
+background: #2e2e2e url(images/bgd.jpg) center repeat-y;
+}
+			/* WRAP */
+#container {
+width: 750px;
+margin: 0 auto;
+padding: 0;
+text-align: left;
+color: #666;
+background: #fff;
+}
+
+			/* BANNER */
+#banner {
+width: 750px;
+margin: 0 0 30px 0;
+padding: 0;
+height: 100px;
+background: #000;
+color: #000;
+}
+#banner h1 {	
+margin: 0;
+padding: 70px 50px 0 0;
+height: 50px;
+font: 1.4em "Trebuchet MS", verdana, arial, sans-serif;
+text-align: right;
+letter-spacing: 3px;
+color:  #fff;
+background: inherit;
+}
+			/*TOP NAV*/
+#navPyra {
+margin: 0;
+padding: 20px 0 20px 10px;
+border-bottom: 1px solid #aaa;
+}
+#navPyra li {
+margin: 0;
+padding: 0;
+display: inline;
+list-style-type: none;
+}
+#navPyra a:link, #navPyra a:visited {
+float: left;
+font-size: 1.2em;
+letter-spacing: 3px;
+line-height: 1em;
+font-weight: normal;
+padding: 0 12px 6px 12px;
+text-decoration: none;
+color: #000;
+}
+#navPyra a:link.active, #navPyra a:visited.active, #navPyra a:hover {
+color: #708491;
+background: url(images/pyramid.gif) no-repeat bottom center;
+}
+			/* SIDE CONTENT */
+#side {
+width: 150px;
+float: left;
+margin: 0 auto;
+padding: 0 20px;
+background: inherit;
+color: #999;
+}
+#side p { 
+margin: 1em 0 1em 0; 
+}
+			/* SIDE NAV */		
+#side ul {
+list-style : none;
+margin : 20px 0;
+padding : 0;
+}
+#side ul li {
+display : inline;
+padding : 0;
+margin : 0;
+}
+#side ul li a {
+display : block;
+color : #708491;
+background : inherit;
+text-decoration : none;
+margin : 0;
+padding : 3px 0;
+border-bottom : 1px solid #aaa;
+}
+#side ul li a:hover {
+text-decoration : none;
+background : #fff;
+color : #000;
+} 
+				/* MAIN CONTENT */
+#content {
+width: 520px;
+margin-left: 199px;
+padding: 0 10px;
+}
+
+				/* FOOTER */
+#footer {	
+margin-top: 30px;
+margin-left: 0;
+padding: .5em;
+clear: both;
+font-size: 0.9em;
+color: #fff;
+background: #000;
+border-top: 1px solid #aaa;
+}
+				/* LINKS*/
+a {
+color: #666;
+text-decoration: none;
+}
+
+a img {
+border: 0;
+}
+				/* SEARCH BOX*/
+legend {
+font-weight : bold;
+color : #000;
+}
+				/* TYPOGRAPHY */
+h2 {
+margin-bottom: 10px;
+margin-left: 0;
+margin-right: 0;
+margin-top: 0;
+font: normal 1.5em verdana, arial, "Trebuchet MS", sans-serif;
+letter-spacing: 3px;
+color: #000;
+background: inherit;
+}
+
+h3 {
+    margin-bottom: 10px;
+    margin-left: 0;
+    margin-right: 0;
+    margin-top: 10px;
+    font: bold 1.2em verdana, arial, "Trebuchet MS", sans-serif;
+    letter-spacing: 3px;
+    color: #92D0D4;
+    background: inherit;
+}
+
+h4 {
+    margin-bottom: 0px;
+    margin-left: 0;
+    margin-right: 0;
+    margin-top: 7px;
+    font: normal 1.2em verdana, arial, "Trebuchet MS", sans-serif;
+    letter-spacing: 3px;
+    color: #363636;
+    background: inherit;
+}
+
+hr {
+    color:#c00;
+    background-color:#000;
+    height:1px;
+    border:none;
+}
+
+blockquote {
+font-weight : bold;
+font-style : italic;
+color : #aaa;
+}
+				/* CLASSES*/
+.imgright {
+float : right;
+padding : 10px;
+border : 1px solid #aaa;
+margin-left : 10px;
+}
+.big {
+margin : 5px;
+font: 2.0em "Trebuchet MS", verdana, arial, sans-serif;
+font-size:2.0em;
+line-height: 2em;
+text-transform : uppercase;
+background: #fff;
+color: #2e2e2e;
+}
+
+.sourcecode {
+font-family: "Courier New", courier, monospace;
+font-size:1.2em;
+line-height: 1.3em;
+background: #fff;
+color: #2e2e2e;
+}
+
+
+/*
+	Blue Dream (table)
+	Written by Teylor Feliz  http://www.admixweb.com
+*/
+
+table {
+ background:#D3E4E5;
+ border:1px solid gray;
+ border-collapse:collapse;
+ color:#fff;
+ font: 1em verdana, "Trebuchet MS", arial, sans-serif;
+}
+caption {
+ border:1px solid #5C443A;
+ color:#5C443A;
+ font-weight:bold;
+ letter-spacing:20px;
+ padding:6px 4px 8px 0px;
+ text-align:center;
+ text-transform:uppercase;
+}
+td, th {
+ color:#363636;
+ padding:.4em;
+}
+tr {
+ border:1px dotted gray;
+}
+thead th, tfoot th {
+ background:#5C443A;
+ color:#FFFFFF;
+ padding:3px 10px 3px 10px;
+ text-align:left;
+ text-transform:uppercase;
+}
+tbody td a {
+ color:#363636;
+ text-decoration:none;
+}
+tbody td a:hover {
+ text-decoration:underline;
+}
+tbody th a {
+ color:#363636;
+ font-weight:normal;
+ text-decoration:none;
+}
+tbody th a:hover {
+  color:#363636;
+}
+tbody a {
+ background-image:url('images/bullet_blue.png');
+ background-position:left center;
+ background-repeat:no-repeat;
+ color:#03476F;
+ padding-left:15px;
+}
+
+tbody th, tbody td {
+ text-align:left;
+ vertical-align:top;
+}
+
+tfoot td {
+ background:#5C443A;
+ color:#FFFFFF;
+ padding-top:3px;
+}
+
+tbody tr:hover {
+ background:#99BCBF;
+ border:1px solid #03476F;
+ color:#000000;
+}
+
+label
+{
+  width: 100px;
+  float: left;
+  text-align: right;
+  margin-right: 8px;
+  display: block;
+}
+
+input {
+  background : silver;
+  color : #fff;
+}
+
+input.submit
+{
+  margin-left: 108px;
+  color: #000
+}
+

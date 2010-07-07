@@ -1,0 +1,83 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Developing Adapters</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link href="docstyle.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="container">
+  <p><a href="index.html" target="">&lt;&lt;&nbsp;Back to GIL&nbsp;Documentation</a></p>
+  <h2>Developing adapters</h2>
+  <p>Adapters for attaching external systems and process models to GIL is quite similar. This document has focus
+      on the ES-adapter development but most is applicable also to PM-adapter development.</p>
+  <p>Adapter for an external system (ES-adapter) is developed by implementing the
+      <a href="javadoc/gil/io/IExternalSystemAdapter.html">IExternalSystemAdapter</a> interface.</p>
+  <p>Adapter for a process (PM-adapter) model is developed by implementing the
+      <a href="javadoc/gil/io/IProcessModelAdapter.html">IProcessModelAdapter</a> interface.</p>
+
+  <p>Please also see the <a href="../../src/gil/io/example/ExampleESAdapter.java">ExampleESAdapter.java</a>
+  and <a href="../../src/gil/io/example/ExamplePMAdapter.java">ExamplePMAdapter.java</a> for example implementations.</p>
+
+  <h3>Adapter capabilities</h3>
+  <p>In the adapter interfaces there are a number of operations. Depending on requested features it may be
+      that only parts of these operations have to be implemented. Some operations may be left just throwing an
+      UnsupportedOperationException as default. Other must return default values e.g. an empty collection if
+      no control commands are available.</p>
+  <p>ES-adapters must also return a capabilities object when <a href="javadoc/gil/io/IExternalSystemAdapter.html#getCapabilities%28%29">getCapabilities()</a>
+      is called. The capabilities object tells GIL the features of the current ES-adapter implementation.</p>
+
+  <h3>Connect and Setup</h3>
+  <img src="images/connect.png" alt="" />
+  <p>At startup GIL calls <a href="javadoc/gil/io/IExternalSystemAdapter.html#setup(gil.core.SignalMetadata[], gil.core.SignalMetadata[], gil.common.Parameters)">
+          setup()</a> on the ES-adapter. In this call the ES-adapter is handed a specification describing all signals to be transferred
+          between the process model and the external system.</p>
+  <h4>Configuration</h4>
+  <p>Adapters are handed implementation specific configuration from GIL in the <a href="javadoc/gil/io/IExternalSystemAdapter.html#setup(gil.core.SignalMetadata[], gil.core.SignalMetadata[], gil.common.Parameters)">
+          setup()</a> call.</p>
+  <p>GIL reads the <a href="../gil.config.xml">gil.config.xml</a> configuration file and parses the 'adapterSettings' section containing the adapter
+          specific configuration parameters. A <a href="javadoc/gil/common/Parameters.html">Parameters</a> object is created and handed to the adapter.</p>
+
+
+
+  <h3>Transfer of signal data from External System to Process Model</h3>
+  <img src="images/read.png" alt="" />
+
+  <p>GIL will continuously call <a href="javadoc/gil/io/IExternalSystemAdapter.html#readSignalData(java.nio.ByteBuffer)">readSignalData()</a>
+      on the ES-adapter when connected. </p>readSignalData() returns 'null' until new data is available. New data is
+  added to a transfer queue. Data is retrieved from this queue by a different thread handling the data writes to the Process Model. If
+  more data is added to the queue before the previous data has been written, GIL will drop the data and
+  increment the counter of dropped frames.
+
+  <h3>Transfer of signal data from the Process Model to the External System</h3>
+  Transfers of signal data from the Process Model to the External System is handled much in the same way as transfers in the opposite direction
+  described above.
+  <h3>Simulator commands</h3>
+  <p>Simulator commands are executed on the ES-adapter as a result of an event occurring in the process model.</p>
+  <img src="images/simCommands.png" alt="" />
+  <p>GIL does continuously call <a href="javadoc/gil/io/IProcessModelAdapter.html#readSimCommands()">readSimCommands()</a> on the
+      PM-adapter. This operation returns the events that have occurred since the last call as a collection of simulator commands.
+      These commands are added as pending commands to a queue. Commands are retrieved from this queue by a different thread handling
+      the execution of the commands on the ES-adapter
+      by calling <a href="javadoc/gil/io/IExternalSystemAdapter.html#executeSimCommand(gil.core.Command)">executeSimCommand()</a>.</p>
+  
+  <h3>Control commands</h3>
+  <p>Control commands are executed on the ES-adapter as a result of a call on the GIL http API or web interface.</p>
+  <img src="images/controlCommands.png" alt="" />
+  <p>An implementation of ES-adapter may or may not supply control commands. By implementing <a href="javadoc/gil/io/IExternalSystemAdapter.html#availableControlCommands()">availableControlCommands()</a> a list
+      of possible control commands and there parameters can be supplied to GIL. If there are no control commands available an empty collection
+      shall be returned.</p>
+  <p>GIL will call <a href="javadoc/gil/io/IControlCommandInvokeable.html#invokeControlCommand(gil.core.Command)">invokeControlCommand()</a> to
+  execute control commands.</p>
+  <h3>Error handling</h3>
+  <p>Methods on adapters may in many cases signal failures either by returning a <a href="javadoc/gil/common/Result.html">Result</a> object indicating failure
+      or throwing an exception.</p>
+  <p>Reported failures will have different consequences depending on the current state. E.g. When connected, an exception will result in a disconnect. When disconnected, an exception will force GIL
+     to an error state.</p>
+  <img src="images/esCommStates.png" alt="" />
+  <div id="footer">
+    <a href="/index.html">homepage</a>
+    <a href="http://www.mitchinson.net" target="_blank"> | Design by www.mitchinson.net</a>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Building GIL</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link href="docstyle.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="container">
+  <p><a href="index.html" target="">&lt;&lt;&nbsp;Back to GIL&nbsp;Documentation</a></p>
+  <h2>Building GIL</h2>
+  <p>This document describes the process of building GIL from source.</p>
+  <h3>Prerequisites</h3>
+  <table>
+    <tr><td>Java JDK 6</td><td>Is the Java development toolkit necessary for building GIL.</td><td><a href="http://java.sun.com/javase/downloads/widget/jdk6.jsp">Download</a></td>
+    </tr>
+    <tr><td>Git</td><td>Is the Source Code Management tool to retrieve the code from GitHub where the GIL source is hosted.</td><td><a href="http://code.google.com/p/msysgit/">Download</a></td>
+    </tr>
+    <tr><td>Apache Ant</td><td>Ant build tool or NetBeans below is necessary to build GIL. The Ant installation instructions can be found <a href="http://ant.apache.org/manual/index.html">here</a></td><td><a href="http://www.apache.org/dist/ant/">Download</a></td>
+    </tr>
+    <tr><td>NetBeans 6.8</td><td>NetBeans is not necessary for building GIL but it works fine if you prefer an IDE instead of the command line.
+            Actually the NetBeans installation installs Ant and uses it behind the scenes.</td><td><a href="http://netbeans.org/downloads/index.html">Download</a></td>
+    </tr>
+  </table>
+  <h3>Build using Ant</h3>
+    <ol>
+        <li>Get the source from GitHub, either by creating a fork and run 'git clone git@github.com:yourUsername/yourFork' locally,
+            or just <a href="http://github.com/learningwell/gil/archives/master">download the source</a>.</li>
+        <li>Direct your command line to the GIL root folder that should contain the 'build.xml' file.</li>
+        <li>Type 'ant distribute'. This will build GIL, the javadoc and run unit tests.
+            Finally a distributable as a zip archive is built in the 'dist' folder, named gil-x.x.zip.
+        </li>
+    </ol>
+  <h3>Build using NetBeans 6.8</h3>
+    <ol>
+        <li>Get the source from GitHub, either by creating a fork and run 'git clone git@github.com:yourUsername/yourFork' locally,
+            or just <a href="http://github.com/learningwell/gil/archives/master">download the source</a>.</li>
+        <li>Start NetBeans and select 'Open Project...' from the 'File' menu. And locate the GIL folder and open the GIL project.</li>
+        <li>Select the 'Files' tab in the projects window. If not visible, select 'Files' from the 'Windows' menu.</li>
+        <li>Locate the 'build.xml' in the GIL root folder. Right click on the file and select 'Run Target' and 'distribute'.
+            <p>This will build GIL, the javadoc and run unit tests. Finally a distributable as a zip archive is built in the 'dist' folder, named gil-x.x.zip.</p></li>
+    </ol>
+  <h3>Build the GILExample using Ant</h3>
+    This will build a running example with fake adapters. First of all the GIL framework must be built following either description above. 
+    <ol>
+        <li>Direct your command line to the GILExample root folder that should contain the 'build.xml' file.</li>
+        <li>Type 'ant jar'. This will build the GILExample.</li>
+        <li>Direct your command line to the 'dist' folder and type 'java -jar GILExample.jar' to run the example.
+            <p>This will start GIL with fake adapters for the external system side and the process model side. Values will
+            be transferred and sim commands will be executed. Direct your browser to http://localhost:9980/index.html
+            to access the GIL Web interface.</p></li>
+    </ol>
+  <div id="footer">
+    <a href="/index.html">homepage</a>
+    <a href="http://www.mitchinson.net" target="_blank"> | Design by www.mitchinson.net</a>
+  </div>
+</div>
+</body>
+</html>

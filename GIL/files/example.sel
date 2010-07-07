@@ -1,0 +1,8 @@
+! This is an example signal exchange list. To work properly with the example adapters in the gil.io.example
+! package this example SEL may only contain Float32 values.
+!---------------------------------- Mandatory attributes -------------------------------------|---- Custom attributes ----|
+Type        DataType       Length  Direction PMID             ESID        Description          ESMin   ESMax  PMMin  PMMax 
+Analog      Float32        1       ToPM      pm0              es1         "Example signal 0"   0       20     100     500
+Analog      Float32        3       ToPM      pmA1             esA1        "An array example"   --      --     --      --
+Analog      Float32        1       ToES      pm2              es2         "Example signal 2"   4       20     0       100
+Analog      Float32        4       ToES      pmA2             esA2        "An array example"   --      --     --      --

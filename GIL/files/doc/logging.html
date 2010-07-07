@@ -1,0 +1,38 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Logging</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link href="docstyle.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="container">
+  <p><a href="index.html" target="">&lt;&lt;&nbsp;Back to GIL&nbsp;Documentation</a></p>
+  <h2>Logging</h2>
+  <p>Logging internally in GIL is done using the Apache log4j framework. log4j is also the preferred way to log when developing adapters and transfer
+      pipeline stages. There are some conventions to be aware of.</p>
+  <h3>Configure logging</h3>
+  <p>log4j is configured in the <a href="../gil.config.xml">gil.config.xml</a> file by altering the 'log4j:configuration' section. For details
+      please see the log4j documentation.</p>
+  <p>As default, the config file configures the FileAppender to direct log files to the 'logfiles' folder located in the GIL folder. This has it's meaning since
+     GIL looks in the 'logfiles' folder and makes the files accessible via the GIL web interface and the http API.</p>
+  <h3>Create logger objects in source</h3>
+  <p>
+      When instantiating logger objects in your sorce code, use the class name as the logger name.</p>
+ <pre class="sourcecode">
+      private static Logger _logger = Logger.getLogger(ExampleESAdapter.class);
+</pre>
+    <p>
+      This makes it easy to configure loggers for a certain package or class.
+      For example, this is how you change the log level for the example ES-adapter to the 'debug' level in the <a href="../gil.config.xml">gil.config.xml</a> file.</p>
+ <pre class="sourcecode">
+    &lt;logger name="gil.io.example.ExampleESAdapter"&gt;
+        &lt;level value="debug"/&gt;
+    &lt;/logger&gt;
+</pre>     
+  <div id="footer">
+    <a href="/index.html">homepage</a>
+    <a href="http://www.mitchinson.net" target="_blank"> | Design by www.mitchinson.net</a>
+  </div>
+</div>
+</body>
+</html>

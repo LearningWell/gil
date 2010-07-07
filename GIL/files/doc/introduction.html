@@ -1,0 +1,80 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Introduction</title>    
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link href="docstyle.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="container">
+  <p><a href="index.html" target="">&lt;&lt;&nbsp;Back to GIL&nbsp;Documentation</a></p>
+  <h1>GIL introduction</h1>
+  <div id="methods">
+      <p>GIL is a framework and a runtime originally developed by LearningWell AB (<a href="http://www.learningwell.com" target="_blank">www.learningwell.com</a>)
+          for Kärnkraftsäkerhet och Utbildning AB (<a href="http://www.ksu.se" target="_blank">www.ksu.se</a>), the center in Sweden for nuclear power plant simulators.</p>
+      <p>GIL is used to integrate external systems to the core process models, transferring
+          simulator process data and simulator commands. Even though the main use of GIL is in a context
+          of nuclear power plant simulators it can be used in any context where real time data and commands
+          shall be transferred between a master system (Process Model) and a connected sub system (External System).</p>
+      <p>GIL consists of:</p>
+    <ul>
+      <li>Common functionality to be reused when integrating external systems to the process models (master system).</li>
+      <li>Well defined interfaces to be implemented when adapting GIL to new external systems (sub systems).</li>
+      <li>A runtime that handles transfers of processs data and simulator commands between the process model and the external system.</li>
+      <li>A http based API (Application Programming Interface) that may be used to interact with the GIL runtime from arbritrary client software.</li>
+      <li>A web user interface.</li>
+    </ul>
+
+    The intention of GIL is to reduce the work to be done each time a new external system shall be integrated to the
+    simulator process models. GIL also provides a common user experience (through the Web interface) to all integration solutions.
+    <h3>GIL concept:</h3>
+    <img src="images/overview.jpg" width="700" alt="A schematic overview of the GIL concept" />
+    <br/><br/>
+    <p><span class="highlight">Simulator commands</span> are state change information from the process model to the external system such as RUN, FREEZE, LOAD_IC etc.</p>
+    <p><span class="highlight">Control commands</span> are arbritrary commands that may control the adapters, external system, process model or the pipeline stages. Such commands
+    are specific to each implementation of adapters and pipeline stages. The specification on which commands that are available on a
+    specific integration solution can be requested via the http-API or the web-interface. Control commands are invoked via the
+    http-API or the web-interface.</p>
+    <p><span class="highlight">Status</span> is used in a wider sence than just containing status information. Status can contain such information
+      as version info, progress info, current state (RUN, FREEZE etc.).</p>
+    <table>
+      <tr><th>Element</th><th>Description</th></tr>
+
+      <tr><td>External system</td><td>External systems are subsystems of the complete simulator but not part of
+          the core simulator process models. Since they are not part of the core process models they do not share the same common
+          areas of global variables. Therefor data has to be interchanged between the external systems and the process model and
+          this can be done by using GIL.</td></tr>
+
+      <tr><td>ES-adapter</td><td>GIL provides core functionality to interchange data between the process model and the external system. However,
+          to adapt each external systems unique interface to GIL, an ES-adapter has to be developed. An ES-adapter is developed according
+          to a well defined interface which is part of the GIL framework.</td></tr>
+      <tr><td>IntegrationExecutive</td><td>This is the core control logic that handles transfers between the process model and the external system.</td></tr>
+
+      <tr><td>Transfer pipeline</td><td><p>Data to and from the process model and the external system passes through the transfer pipeline. The pipeline
+        consists of a chain of stages. Each stage are aware of the type of data passing through and may monitor or alter the data.</p>
+          <p>The transfer pipeline can contain zero stages to leave passing data unaffected and save CPU.</p>
+          <p>The transfer pipeline is built on a plug-in architecture, stages may be added to pipeline by altering the gil.config.xml file.</p>
+          <p>There is stages for certain tasks developed in the GIL framework. New stages may be developed according to a well defined interface which is part of the GIL framework.</p></td></tr>
+
+      <tr><td>Stage</td><td>Stages are plug-ins in the Transfer pipeline.</td></tr>
+
+      <tr><td>Process model</td><td>The meaning of the term process model is the core simulator functionality. The process model
+          acts as the master. GIL detects simulator state changes (RUN, FREEZE etc.) and frame (time step) changes by monitoring
+          the process model.</td></tr>
+      <tr><td>PM-adapter</td><td>The PM-adapter adapts GIL to different process models. A PM-adapter is developed according
+          to a well defined interface which is part of the GIL framework.</td></tr>
+      <tr><td>Web-server</td><td>An embedded web-server is part of the GIL package to remove the necessity of a web-server on the
+        machine hosting GIL. The Web-server hosts the http-API and the GIL web-based user interface. By pointing your web-browser
+        to http://{host}/index.html you can access the web user interface.</td></tr>
+      <tr><td>API</td><td>A client may interact with the GIL runtime using a http based API. Se the 
+          <a href="apidoc/index.html" target="">GIL API Documentation</a> for instructions on how to use the API.
+        </td></tr>
+    </table>
+  </div>
+
+  <div id="footer"> 
+    <a href="/index.html">homepage</a>
+    <a href="http://www.mitchinson.net" target="_blank"> | Design by www.mitchinson.net</a>
+  </div>
+</div>
+</body>
+</html>
