@@ -1,0 +1,49 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>API documentation: stages/{seqNo}/commands/{name}</title>    
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link href="apistyle.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="container">
+  <p><a href="index.html" target="">&lt;&lt;&nbsp;Back to GIL&nbsp;API Documentation</a></p>
+  <div class="resource_doc">
+    <h2>API documentation: stages/&lt;seqNo&gt;/commands/&lt;name&gt;</h2>
+    <p>Invokes the control command with the given name on the transfer pipeline stage with the given seqNo.</p>
+    <h3>URL:</h3>
+    <p>api/pipeline/stages/&lt;seqNo&gt;/commands/&lt;name&gt;[.format]<br/></p>
+    <h3>Formats:</h3>
+    <p>html, xml, json<br/></p>
+    <h3>HTTP Method(s):</h3>
+    <p>POST</p>      
+    <h3>Request examples:</h3>
+    <p>Examples using curl tool which is freely downloadable.</p>
+    <h4>html example:</h4>
+    <div class="sourcecode">
+      <pre>
+curl -v -X POST -d "doBypass=true" http://localhost:9980/api/pipeline/stages/0/commands/bypass
+      </pre>
+    </div>
+    <h4>xml example:</h4>
+    <div class="sourcecode">
+    <pre>
+curl -v -X POST --data-binary "&lt;parameters&gt;&lt;parameter&gt;&lt;name&gt;doBypass&lt;/name&gt;
+  &lt;value&gt;true&lt;/value&gt;&lt;/parameter&gt;&lt;/parameters&gt;" -H"Content-Type: application/xml" 
+  http://localhost:9980/api/pipeline/stages/0/commands/bypass
+    </pre>
+    </div>
+    <h4>json example:</h4>
+    <div class="sourcecode">    
+      <pre>
+curl -v -X POST --data-binary "{\"parameter\":[{\"name\":\"doBypass\",\"value\":\"true\"}]}" 
+  -H"Content-Type: application/json" http://localhost:9980/api/pipeline/stages/0/commands/bypass
+      </pre>
+    </div>
+  </div>
+  <div id="footer"> 
+    <a href="/index.html">homepage</a>
+    <a href="http://www.mitchinson.net" target="_blank"> | Design by www.mitchinson.net</a>
+  </div>
+</div>
+</body>
+</html>

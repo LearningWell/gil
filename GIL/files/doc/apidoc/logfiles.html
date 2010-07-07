@@ -1,0 +1,58 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>API documentation: logfiles</title>    
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link href="apistyle.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="container">
+  <p><a href="index.html" target="">&lt;&lt;&nbsp;Back to GIL&nbsp;API Documentation</a></p>
+  <div class="resource_doc">
+    <h2>API documentation: logfiles</h2>
+    <p>Returns a list of the available logfiles.</p>
+    <h3>URL:</h3>
+    <p>api/logfiles[.format]<br/></p>
+    <p>Example: <a href="/api/logfiles.xml">api/logfiles.xml</a></p>
+    <p>Omitted format defaults to html.<br/></p>
+    <h3>Formats:</h3>
+    <p>html, xml, json<br/></p>
+    <h3>HTTP Method(s):</h3>
+    <p>GET</p>    
+    <h3>Response:</h3>
+    <table>
+      <tr><th>Element</th><th>Description</th></tr>
+      <tr><td>sizeInBytes</td><td>The size of the listed logfile in bytes.</td></tr>
+      <tr><td>name</td><td>The uri to download the listed logfile.</td></tr>
+      <tr><td>lastModified</td><td>A timestamp for the last modification of the logfile.</td></tr>
+    </table>    
+    <h3>Response example(s):</h3>
+    <h4>XML:</h4>
+    <div class="sourcecode">
+      <pre>
+&lt;logfiles&gt;
+  &lt;logfile&gt;
+    &lt;sizeInBytes&gt;1001&lt;/sizeInBytes&gt;
+    &lt;name&gt;http://localhost:9980/api/logfiles/example.log&lt;/name&gt;
+    &lt;lastModified&gt;2010-04-12T15:32:44+02:00&lt;/lastModified&gt;
+  &lt;/logfile&gt;
+  &lt;logfile&gt;
+    &lt;sizeInBytes&gt;1093&lt;/sizeInBytes&gt;
+    &lt;name&gt;http://localhost:9980/api/logfiles/example.log.1&lt;/name&gt;
+    &lt;lastModified&gt;2010-04-12T15:32:44+02:00&lt;/lastModified&gt;
+  &lt;/logfile&gt;
+  &lt;logfile&gt;
+    &lt;sizeInBytes&gt;1096&lt;/sizeInBytes&gt;
+    &lt;name&gt;http://localhost:9980/api/logfiles/example.log.2&lt;/name&gt;
+    &lt;lastModified&gt;2010-04-12T15:32:42.015+02:00&lt;/lastModified&gt;
+  &lt;/logfile&gt;
+&lt;/logfiles&gt;
+      </pre>
+    </div>
+  </div>
+  <div id="footer"> 
+    <a href="/index.html">homepage</a>
+    <a href="http://www.mitchinson.net" target="_blank"> | Design by www.mitchinson.net</a>
+  </div>
+</div>  
+</body>
+</html>

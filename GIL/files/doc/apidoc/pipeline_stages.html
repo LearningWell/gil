@@ -1,0 +1,50 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>API documentation: pipeline/stages</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link href="apistyle.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="container">
+  <p><a href="index.html" target="">&lt;&lt;&nbsp;Back to GIL&nbsp;API Documentation</a></p>
+  <div class="resource_doc">
+    <h2>API documentation: pipeline/stages</h2>
+    <p>Returns a list of stages present in the transfer pipeline.</p>
+    <p>Data transferred between the process model and the external system passes the transfer pipeline.
+    The transfer pipeline consists of zero or more stages. Each stage can monitor or process data, which is specific to each implementation of a stage.</p>
+    <h3>URL:</h3>
+    <p>api/pipeline/stages[.format]<br/></p>
+    <p>Example: <a href="/api/pipeline/stages.xml">api/pipeline/stages.xml</a></p>
+    <p>Omitted format defaults to html.<br/></p>
+    <h3>Formats:</h3>
+    <p>html, xml, json<br/></p>
+    <h3>HTTP Method(s):</h3>
+    <p>GET</p>    
+    <h3>Response:</h3>
+    <table>
+      <tr><th>Element</th><th>Description</th></tr>
+      <tr><td>seqNo</td><td>Indicates where the stage is placed in the chain of stages in the transfer pipeline. seqNo 0 indicates the first stage.</td></tr>
+      <tr><td>name</td><td>A descriptive name of the transfer pipeline stage.</td></tr>
+      <tr><td>commands</td><td>The uri to the list of available control commands on the stage.</td></tr>
+    </table>    
+    <h3>Response example(s):</h3>
+    <h4>XML:</h4>
+    <div class="sourcecode">
+      <pre>
+&lt;pipelineStages&gt;
+    &lt;pipelineStage&gt;
+        &lt;seqNo&gt;0&lt;/seqNo&gt;
+        &lt;name&gt;ConvertStage&lt;/name&gt;
+        &lt;commands&gt;http://localhost:9980/api/pipeline/stages/0/commands.xml&lt;/commands&gt;
+    &lt;/pipelineStage&gt;
+&lt;/pipelineStages&gt;
+      </pre>
+    </div>
+  </div>
+  <div id="footer"> 
+    <a href="/index.html">homepage</a>
+    <a href="http://www.mitchinson.net" target="_blank"> | Design by www.mitchinson.net</a>
+  </div>
+</div>  
+</body>
+</html>

@@ -1,0 +1,9 @@
+! This is an example signal exchange list. To work properly with the example adapters this example SEL may only contain Float32 values.
+!---------------------------------- Mandatory attributes --------------------------------------|-------------- Custom attributes ---------------|
+Type        DataType       Length  Direction PMID                      ESID        Description                 ESMin   ESMax  PMMin  PMMax   Redundancy
+Analog      Float32        1       ToPM      test0                     evar1       "Example signal 0"          0       20     100     500    --
+Analog      Float32        6       ToPM      testA                     evarA       "An array example"          --      --     --      --     --
+Analog      Float32        1       ToPM      test1                     evar1       "Example signal 1"          0       20     100     500    --
+Analog      Float32        1       ToES      test2                     evar2       "Example signal 2"          4       20     0       100    --
+Analog      Float32        8       ToES      testA2                    evarA2      "An array example"          --      --     --      --     --
+Analog      Float32        1       ToES      test3                     evar3       "Example signal 3"          4       20     0       100    --

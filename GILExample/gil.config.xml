@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Configuration file for the integration of O2 process models and T2000 S7 Emulations    
+-->
+
+<configuration>
+    <appSettings>
+        <!-- The qualified name of the class to be instantiated and used as the adapter facing the process models.
+        Custom settings for this adapter can be given under the adapaterSettings section below. -->
+        <add key="processModelAdapter" value="gil.io.example.ExamplePMAdapter" />
+
+        <!-- The qualified name of the class to be instantiated and used as the adapter facing the external system.
+        Custom settings for this adapter can be given under the adapaterSettings section below. -->
+        <add key="externalSystemAdapter" value="gil.io.example.ExampleESAdapter" />
+
+        <!-- The relative or absolute path to the signal exchange list. -->
+        <add key="signalExchangeList" value="example.sel" />
+
+        <!-- The minimum interval of transferring data from the process models to the external system even when the
+        process models are in freeze (idle). Normally data is transferred at the same rate as the external system
+        operating frequency. Idle transfers are suppressed if 'value' is set to zero. Value given in milliseconds. -->
+        <add key="idleProcessDataTransferInterval" value="30000" />
+
+        <!-- The readSignalData operation on the ES-adapter is called every xxx millisecond. -->
+        <add key="esAdapterReadPollRate" value="200" />
+
+        <!-- Adapters receive their process data in ByteBuffers. This parameters sets the byte order the
+        PM-adapter expects {BIG_ENDIAN | LITTLE_ENDIAN}.
+
+        GIL do not prescribe a certain byte order. However, in each case of a new integration solution the byte order
+        has to be taken into consideration if either the PM-adapter or the ES-adapter uses direct access to the
+        bytes in the byte buffers. In that case, the byte order must be the same for both the ES-adapter and
+        the PM-adapter or else the data must be processed to handle the difference in byte order. Using this strategy
+        a integration of two systems using the same byte order can be built with minimal overhead. -->
+        <add key="pmAdapterByteOrder" value="LITTLE_ENDIAN" />
+
+        <!-- Adapters receive their process data in ByteBuffers. This parameters sets the byte order the
+        ES-adapter expects {BIG_ENDIAN | LITTLE_ENDIAN}.
+
+        GIL do not prescribe a certain byte order. However, in each case of a new integration solution the byte order
+        has to be taken into consideration if either the PM-adapter or the ES-adapter uses direct access to the
+        bytes in the byte buffers. In that case, the byte order must be the same for both the ES-adapter and
+        the PM-adapter or else the data must be processed to handle the difference in byte order. Using this strategy
+        a integration of two systems using the same byte order can be built with minimal overhead. -->
+        <add key="esAdapterByteOrder" value="LITTLE_ENDIAN" />
+    </appSettings>
+
+    <!-- This section contains adapter specific configuration parameters. See documentation for each adapter for a
+    list of parameters and their usage. -->
+    <adapterSettings>
+        <gil.io.example.ExamplePMAdapter>
+            <add key="firstExamplePMSetting" value="first example setting value" />
+            <add key="secondExamplePMSetting" value="second example setting value" />
+        </gil.io.example.ExamplePMAdapter>
+        <gil.io.example.ExampleESAdapter>
+            <add key="operatingFrequency" value="1" />
+            <add key="firstExampleESSetting" value="first example setting value" />
+            <add key="secondExampleESSetting" value="second example setting value" />
+        </gil.io.example.ExampleESAdapter>
+	</adapterSettings>
+
+    <!-- This section lists the stages to be plugged in the transfer pipeline. The stages will be called in the
+    same order as listed. -->
+    <transferPipeline>        
+		<stage id="convStage1">gil.io.stages.ConvertStage</stage>
+        <!--
+        <stage>gil.io.stages.SignalTraceStage</stage>
+        <stage>gil.io.stages.RedundancyResolverStage</stage>
+            -->
+    </transferPipeline>
+
+    <!-- This section contains pipeline stage specific configuration parameters. See documentation for each pipeline stage for a
+    list of parameters and their usage. -->
+    <pipelineStageSettings>
+        <convStage1>
+            <add key="param1" value="value1" />
+        </convStage1>
+    </pipelineStageSettings>
+
+    <!-- This section contains parameters for the log4j framework. By changing these settings you can for 
+    example direct log output from a certain class or package, on a certain log level, to a file of your choice.
+    Please see the log4j documentaion for further details.
+
+    If logfiles shall be accessible from the GIL http API and the GIL web user interface, files shall be
+    written to 'logfiles/<filename.log>' -->
+    <log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+        <appender name="ConsoleAppender" class="org.apache.log4j.ConsoleAppender">
+            <layout class="org.apache.log4j.PatternLayout">
+                <param name="ConversionPattern" value="%d{dd/MM HH:mm:ss} %-5p %c{2} - %m%n"/>
+            </layout>
+        </appender>
+        <appender name="FileAppender" class="org.apache.log4j.RollingFileAppender">
+            <param name="File" value="logfiles/o2plex.log" />
+            <param name="MaxFileSize" value="1KB" />
+            <param name="MaxBackupIndex" value="5" />
+            <layout class="org.apache.log4j.PatternLayout">
+                <param name="ConversionPattern" value="%d{dd/MM HH:mm:ss} [%t] %-5p %c{2} - %m%n"/>
+            </layout>
+        </appender>
+        <appender name="LF5Appender" class="org.apache.log4j.lf5.LF5Appender">
+             <param name="MaxNumberOfRecords" value="1000"/>
+        </appender>
+
+        <root>
+            <priority value ="debug" />
+            <appender-ref ref="ConsoleAppender"/>
+            <appender-ref ref="FileAppender"/>
+        </root>
+    </log4j:configuration>
+</configuration>
+

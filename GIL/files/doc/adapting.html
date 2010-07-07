@@ -1,0 +1,35 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Adapting GIL</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link href="docstyle.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="container">
+  <p><a href="index.html" target="">&lt;&lt;&nbsp;Back to GIL&nbsp;Documentation</a></p>
+  <h2>Adapting GIL</h2>
+  <p>Adapting GIL is the process of developing adapters or additions to make GIL fit in a specific integration solution, i.e.
+    make a specific process model "talk" to a specific external system.</p>
+  <p>GIL is developed in Java and adaptions are preferable developed in Java. It is possible to develop adaptions in other languages by
+    utilizing Javas support for native code JNI.</p>
+  <h3>What has to be done?</h3>
+  <ul>
+    <li>If the external system hasn't been integrated before, an ES-adapter has to be implemented. This is done by implementing the
+      <a href="javadoc/gil/io/IExternalSystemAdapter.html">IExternalSystemAdapter</a> interface.</li>
+    <li>If there is no existing adapter to the process model in question, a PM-adapter has to be implemented. This is done by
+      implementing the <a href="javadoc/gil/io/IProcessModelAdapter.html">IProcessModelAdapter</a> interface.</li>
+    <li>If data passing to/from the process model and the external system has to be processed or monitored, and there is no existing pipeline stage
+      for the purpose, a specific pipeline stage has to be implemented. This is done by implementinig the
+      <a href="javadoc/gil/io/IPipelineStage.html">IPipelineStage</a> interface.</li>
+    <li>The <a href="../gil.config.xml">gil.config.xml</a> configuration file has to be explored to select and configure the adapters to be used and select and configure
+      the chain of stages to be added to the transfer pipeline.</li>
+    <li>It has to be defined which data to transfer. This is done by altering the signal exchange list (<a href="sel.html">SEL</a>) which contains
+      a list of all signals to be interchanged. The path setting 'signalExchangeList' in <a href="../gil.config.xml">gil.config.xml</a> points to where the SEL-file is located. </li>
+  </ul>
+  <div id="footer"> 
+    <a href="/index.html">homepage</a>
+    <a href="http://www.mitchinson.net" target="_blank"> | Design by www.mitchinson.net</a>
+  </div>
+</div>
+</body>
+</html>

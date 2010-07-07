@@ -1,0 +1,7 @@
+<?xml version=\"1.0\"?>
+<Config>
+  <TransferPipeline>
+    <Stage>gil.pipeline.test.stubs.AddStageStub</Stage>
+    <Stage>gil.pipeline.test.stubs.MultiplyStageStub</Stage>
+  </TransferPipeline>
+</Config>

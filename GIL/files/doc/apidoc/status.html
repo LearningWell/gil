@@ -1,0 +1,70 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>API documentation: status</title>    
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link href="apistyle.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="container">
+  <p><a href="index.html" target="">&lt;&lt;&nbsp;Back to GIL&nbsp;API Documentation</a></p>
+  <div class="resource_doc">
+    <h2>API documentation: status</h2>
+    <p>Returns information such as current activity, progress information, condition etc. concerning the process model adapter and the external system adapter. </p>
+    <h3>URL:</h3>
+    <p>/api/status[.format]<br/></p>
+    <p>Example: <a href="/api/status.xml">/api/status.xml</a></p>
+    <p>Omitted format defaults to html.<br/></p>
+    <h3>Formats:</h3>
+    <p>html, xml, json<br/></p>
+    <h3>HTTP Method(s):</h3>
+    <p>GET</p>      
+    <h3>Response:</h3>
+    <table>
+      <tr><th>Element</th><th>Description</th></tr>
+      <tr><td>status</td><td>Set to any of the following predefined values:
+          <table>
+            <tr><td>UNKNOWN</td><td>A temporary status that is expected to change when the status becomes known.</td></tr>
+            <tr><td>NOT_AVAILABLE</td><td>A static status indicating that the adapter does not support status reporting. This status is not expected to change.</td></tr>
+            <tr><td>INIT</td><td>A inital status during the setup process. This status is expected to change to OK or NOK.</td></tr>
+            <tr><td>OK</td><td>A status indicating success.</td></tr>
+            <tr><td>NOK</td><td>A status indicating failure. A description of the cause can be expected in the statusDescription element.</td></tr>
+          </table></td>
+      </tr>
+      <tr><td>statusDescription</td><td>An optional description of the cause of the current status.</td></tr>      
+      <tr><td>operatingState</td><td>The current operating state e.g. RUN, FREEZE.</td></tr>
+      <tr><td>isActivityDone</td><td>true | false: A activity can be in progress e.g. loading an IC. This element is set to false when there is an activity in progress.</td></tr>
+      <tr><td>currentActivity</td><td>Contains a descriptive text of the current activity. A text can only be expected when isActivityDone is set to false.</td></tr>
+      <tr><td>activityCompletion</td><td>Contains progress information (0-100) about the current activity. The value of this element is undefined when isActivityDone is set to true.</td></tr>
+    </table>    
+    <h3>Response example(s):</h3>
+    <h4>XML:</h4>
+    <div class="sourcecode">
+      <pre>
+&lt;status&gt;
+  &lt;externalSystem&gt;
+    &lt;status&gt;OK&lt;/status&gt;
+    &lt;statusDescription&gt;The ES is OK&lt;/statusDescription&gt;
+    &lt;operatingState&gt;Freeze&lt;/operatingState&gt;
+    &lt;isActivityDone&gt;false&lt;/isActivityDone&gt;
+    &lt;currentActivity&gt;Loading IC no 19&lt;/currentActivity&gt;
+    &lt;activityCompletion&gt;60&lt;/activityCompletion&gt;
+  &lt;/externalSystem&gt;
+  &lt;processModel&gt;
+    &lt;status&gt;OK&lt;/status&gt;
+    &lt;statusDescription&gt;The PM is OK&lt;/statusDescription&gt;
+    &lt;operatingState&gt;Freeze&lt;/operatingState&gt;
+    &lt;isActivityDone&gt;true&lt;/isActivityDone&gt;
+    &lt;currentActivity/&gt;
+    &lt;activityCompletion&gt;0&lt;/activityCompletion&gt;
+  &lt;/processModel&gt;
+&lt;/status&gt;      
+      </pre>
+    </div>
+  </div>
+  <div id="footer"> 
+    <a href="/index.html">homepage</a>
+    <a href="http://www.mitchinson.net" target="_blank"> | Design by www.mitchinson.net</a>
+  </div>
+</div>
+</body>
+</html>
