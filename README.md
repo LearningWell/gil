@@ -13,6 +13,6 @@ to the documentation should be made there rather than in the gh-pages branch.
 GIL is is available under the [LGPLv3][] license. See the attached files COPYING.txt and COPYING.LESSER.TXT.
 
    [GIL documentation]: http://LearningWell.github.com/gil/GIL/files/doc/index.html
-   [docs-path]: http://github.com/lemonad/gil/tree/master/GIL/files/doc/
+   [docs-path]: http://github.com/LearningWell/gil/tree/master/GIL/files/doc/
    [LGPLv3]: http://www.gnu.org/licenses/lgpl-3.0-standalone.html
 
