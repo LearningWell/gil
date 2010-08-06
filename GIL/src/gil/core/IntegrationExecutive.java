@@ -120,6 +120,8 @@ public class IntegrationExecutive {
         }
         catch (InterruptedException e) {}
 
+        _processModelThread.interrupt();
+        _externalSystemThread.interrupt();
         _externalSystemThread = null;
         _processModelThread = null;
         _externalSystem.disconnect();
