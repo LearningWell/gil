@@ -125,7 +125,9 @@ public class IntegrationExecutive {
         _externalSystemThread = null;
         _processModelThread = null;
         _externalSystem.disconnect();
+        _externalSystem.tearDown();
         _processModel.disconnect();
+        _processModel.tearDown();
     }
 
     private Runnable _esRunnable = new Runnable() {

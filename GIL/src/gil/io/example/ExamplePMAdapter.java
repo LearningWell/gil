@@ -68,6 +68,10 @@ public class ExamplePMAdapter implements IProcessModelAdapter {
         _signalsToPM = signalsToPM;
     }
 
+    public void tearDown() {
+        _logger.info("TearDown called.");
+    }
+
     public boolean connect() throws IOException {
         _logger.info("Connect called.");
         return true;

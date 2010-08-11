@@ -118,6 +118,25 @@ public class IntegrationExecutiveTest {
     }
 
     @Test
+    public void expect_disconnect_and_tearDown_connect_being_called_on_ES_and_PM_on_closedown() throws Exception {
+
+        IntegrationExecutive instance = new IntegrationExecutive(_pmAdapter, _esAdapter, _pipeline, _signalsMD, config);
+
+        when(_pmAdapter.getOperatingFrequency()).thenReturn(1);
+        when(_esAdapter.connect()).thenReturn(false);
+        when(_pmAdapter.connect()).thenReturn(false);
+
+        instance.start();
+        Thread.sleep(200);
+        instance.stop();
+
+        verify(_esAdapter).disconnect();
+        verify(_esAdapter).tearDown();
+        verify(_pmAdapter).disconnect();
+        verify(_pmAdapter).tearDown();
+    }
+
+    @Test
     public void expect_pipeline_stage_commands_to_be_invoked() throws Exception {
         IntegrationExecutive instance = new IntegrationExecutive(_pmAdapter, _esAdapter, _pipeline, _signalsMD, config);
         

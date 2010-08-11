@@ -62,6 +62,13 @@ public interface IProcessModelAdapter extends IControlCommandInvokeable {
      */
     void setup(SignalMetadata[] signalsToPM, SignalMetadata[] signalsToES, Parameters config) throws InvalidParameterException;
 
+     /**
+      * Does the cleanup before close down.
+      * <p>
+      * Call this method before application is closed down. The method may be called multiple times.
+      */
+     void tearDown();
+
     /**
      * Connects to the process model.
      * <p>

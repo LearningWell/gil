@@ -91,6 +91,13 @@ public interface IExternalSystemAdapter extends IControlCommandInvokeable {
      */
      void setup(SignalMetadata[] signalsToES, SignalMetadata[] signalsToPM, Parameters config) throws IOException, InvalidParameterException;
 
+     /**
+      * Does the cleanup before close down.
+      * <p>
+      * Call this method before application is closed down. The method may be called multiple times.
+      */
+     void tearDown();
+
     /**
      * Connects to the external system.
      * <p>

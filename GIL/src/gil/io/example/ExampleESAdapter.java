@@ -71,6 +71,10 @@ public class ExampleESAdapter implements IExternalSystemAdapter {
         _operatingFrequency = config.getIntParam("operatingFrequency");
     }
 
+    public void tearDown() {
+        _logger.info("TearDown called.");
+    }
+
     public boolean connect() throws IOException {
         _logger.info("Connect called.");
         return true;
