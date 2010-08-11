@@ -74,6 +74,14 @@
   <p>Reported failures will have different consequences depending on the current state. E.g. When connected, an exception will result in a disconnect. When disconnected, an exception will force GIL
      to an error state.</p>
   <img src="images/esCommStates.png" alt="" />
+
+  <h3>Close down and Restart</h3>
+  <img src="images/closeDown.png" alt="" />
+  <p>GIL calls <a href="javadoc/gil/io/IExternalSystemAdapter.html#tearDown()"> tearDown()</a>
+      on the adapter on exit or when there is a complete restart. On restart, the adapter shall expect a
+      <a href="javadoc/gil/io/IExternalSystemAdapter.html#setup(gil.core.SignalMetadata[], gil.core.SignalMetadata[], gil.common.Parameters)">
+          setup()</a> call following the <a href="javadoc/gil/io/IExternalSystemAdapter.html#tearDown()"> tearDown()</a> call.
+  </p>  
   <div id="footer">
     <a href="/index.html">homepage</a>
     <a href="http://www.mitchinson.net" target="_blank"> | Design by www.mitchinson.net</a>
