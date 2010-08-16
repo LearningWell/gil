@@ -174,6 +174,30 @@ public class SignalExchangeListTest {
         assertEquals("row1", sm[0].getDescription());
         assertEquals("row4", sm[3].getDescription());
     }
+
+    @Test
+    public void expect_bufferPos_to_be_set() throws Exception {
+
+        // SignalType, SignalDataType, DataflowDirection, pmSignalID, esSignalID, _description
+        String testdata = "Type DataType Length Direction PMID ESID Description\n"
+                   +      "Analog Float64 1 ToPM a_pm_ID an_es_ID row1\r\n"
+                   +      "Digital Int8 1 ToES a_pm_ID an_es_ID row2\r"
+                   +      "Digital Int16 2 ToES a_pm_ID an_es_ID row3\n"
+                   +      "Digital Int32 1 ToES a_pm_ID an_es_ID row4\n"
+                   +      "Analog  Int32 1 ToPM a_pm_ID an_es_ID row5";
+
+        _writer.print(testdata);
+        _writer.close();
+        SignalMetadata[] sm = SignalExchangeList.parse(TEST_SEL_FILE_NAME);
+        
+        assertEquals(0, sm[0].getBufferPos());
+        assertEquals(0, sm[1].getBufferPos());
+        assertEquals(1, sm[2].getBufferPos());
+        assertEquals(5, sm[3].getBufferPos());
+        assertEquals(8, sm[4].getBufferPos());
+    }
+
+
     @Test
     public void expect_empty_rows_to_be_ignored() throws Exception {
 

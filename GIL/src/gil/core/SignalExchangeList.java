@@ -75,6 +75,8 @@ public class SignalExchangeList {
             List<String> columns = new ArrayList<String>();
             List<SignalMetadata> signalMetadata = new ArrayList<SignalMetadata>();
             LineParser lineParser = new LineParser();
+            int toESbufferPos = 0;
+            int toPMbufferPos = 0;
 
             int token = st.nextToken();
             while (token != StreamTokenizer.TT_EOF) {
@@ -88,6 +90,14 @@ public class SignalExchangeList {
                     case StreamTokenizer.TT_EOL:
                         SignalMetadata md = lineParser.parse(columns, st.lineno());
                         if (md != null) {
+                            if (md.getDataflowDirection() == SignalMetadata.DataflowDirection.ToES) {
+                                md.setBufferPos(toESbufferPos);
+                                toESbufferPos += md.getBufferSize();
+                            }
+                            else {
+                                md.setBufferPos(toPMbufferPos);
+                                toPMbufferPos += md.getBufferSize();
+                            }
                             signalMetadata.add(md);
                         }
                         columns.clear();
@@ -98,6 +108,13 @@ public class SignalExchangeList {
 
             SignalMetadata md = lineParser.parse(columns, st.lineno());
             if (md != null) {
+                if (md.getDataflowDirection() == SignalMetadata.DataflowDirection.ToES) {
+                    md.setBufferPos(toESbufferPos);
+                }
+                else {
+                    md.setBufferPos(toPMbufferPos);
+                }
+
                 signalMetadata.add(md);
             }
         

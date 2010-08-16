@@ -35,6 +35,7 @@ public class SignalMetadata implements Cloneable {
     private String _description = "";
     private int _selFileLineNo = 0;
     private HashMap<String, String> _attributes = new HashMap<String, String>();
+    private int _bufferPos = -1;
 
     private static final HashMap<SignalDataType, Integer> _DATA_TYPE_BYTES =
             new HashMap<SignalDataType, Integer>()
@@ -236,6 +237,23 @@ public class SignalMetadata implements Cloneable {
      */
     public int getBufferSize() {
         return _DATA_TYPE_BYTES.get(this.getDataType()) * _length;
+    }
+
+
+    /**
+     * Sets the position in a ByteBuffer where data specified by this object is located.
+     */
+    public void setBufferPos(int pos) {
+        _bufferPos = pos;
+
+    }
+
+    /**
+     * Returns the position in a ByteBuffer where data specified by this object is located.
+     * Returns -1 if not set.
+     */
+    public int getBufferPos() {
+        return _bufferPos;
     }
 
     /**
