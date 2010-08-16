@@ -163,8 +163,11 @@ public class ExternalSystemProcedure  implements IProcedure {
     public class DisconnectedState implements IState {
         public IState handle(long currentTimeInMilliseconds)  {
             try {
-                _logger.debug("Connecting");
+                _logger.debug("Try connect...");
                 if (!_esAdapter.connect()) {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException ex) { /* ignore */ }
                     return this;
                 }
                 synchronized(_context) {
