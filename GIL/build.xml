@@ -88,4 +88,35 @@
             <fileset dir="files/doc/javadoc"/>
         </delete>
     </target>
+    
+    <!-- Added targets due to Netbeans 6.9.1 modifying build-impl.xml file not to copy libraries to the dist/lib folder. -->
+    <target name="-conditions" depends="">
+        <condition property="libs_exists">
+            <available file="${dist.dir.lib}" type="dir"/>
+        </condition>
+        <echo message="libs_exists = ${libs_exists}"/>
+    </target>
+
+    <target name="-post-jar" depends="-conditions" unless="libs_exists">
+        <property location="${build.classes.dir}" name="build.classes.dir.resolved"/>
+        <pathconvert property="run.classpath.without.build.classes.dir">
+            <path path="${run.classpath}"/>
+            <map from="${build.classes.dir.resolved}" to=""/>
+        </pathconvert>
+        <pathconvert pathsep=" " property="jar.classpath">
+            <path path="${run.classpath.without.build.classes.dir}"/>
+            <chainedmapper>
+                <flattenmapper/>
+                <globmapper from="*" to="lib/*"/>
+            </chainedmapper>
+        </pathconvert>
+        <taskdef classname="org.netbeans.modules.java.j2seproject.copylibstask.CopyLibs" classpath="${libs.CopyLibs.classpath}" name="copylibs"/>
+        <copylibs compress="${jar.compress}" jarfile="${dist.jar}" runtimeclasspath="${run.classpath.without.build.classes.dir}">
+            <fileset dir="${build.classes.dir}"/>
+            <manifest>
+                <attribute name="Class-Path" value="${jar.classpath}"/>
+            </manifest>
+        </copylibs>
+    </target>
+    
 </project>
