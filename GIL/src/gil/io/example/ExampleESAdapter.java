@@ -103,17 +103,18 @@ public class ExampleESAdapter implements IExternalSystemAdapter {
         sb.append(' ');
     }
 
-    private static int  _transferCount = 0;
+    private long  _lastTransfer = 0;
     public Result readSignalData(ByteBuffer destBuf) throws IOException {
-        if ((System.currentTimeMillis() % 1000) != 0)
-            return null;                
+        long t = (System.currentTimeMillis() / 1000);
+        if (t == _lastTransfer)
+            return null;
+        _lastTransfer = t;
         int i = 0;
         for (SignalMetadata smd : _signalsToPM) {
             for (int elm = 0; elm < smd.getLength(); elm++) {
-                destBuf.putFloat((float)((++i) + _transferCount % 10 + 10));
+                destBuf.putFloat((float)((++i) + _lastTransfer % 10 + 10));
             }
-        }
-        ++_transferCount;
+        }        
         return new Result(true);
     }
 
