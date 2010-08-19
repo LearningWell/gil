@@ -1,7 +1,11 @@
 GIL/build
 GIL/dist
 GIL/files/doc/javadoc
+GIL/nbproject/private
 GILExample/build
 GILExample/dist
 GILExample/logfiles
 GILExample/files
+GILExample/nbproject/private
+GILExample/files/doc/javadoc
+

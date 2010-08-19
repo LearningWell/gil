@@ -13,7 +13,7 @@
   <table>
     <tr><td>Java JDK 6</td><td>Is the Java development toolkit necessary for building solutions around GIL</td><td><a href="http://java.sun.com/javase/downloads/widget/jdk6.jsp">Download</a></td>
     </tr>
-    <tr><td>NetBeans 6.8</td><td>NetBeans is not necessary for GIL development. However this tutorial is intended to be as easy as possible
+    <tr><td>NetBeans 6.8 or 6.9.1</td><td>NetBeans is not necessary for GIL development. However this tutorial is intended to be as easy as possible
             and NetBeans is a great tool to make the process easier.</td><td><a href="http://netbeans.org/downloads/index.html">Download</a></td>
     </tr>
   </table>
@@ -22,12 +22,11 @@
         Make sure 'Use Dedicated Folder For Storing Libraries' is unchecked and click Finish.
     <h4>Add the necessary GIL libraries</h4>
     <ol>
-        <li>Unpack the GIL package gil-x.x.zip in the root of your project folder. When unpacked, the project folder shall contain two
-            additional folders: lib and files together with the already existing src, test etc.</li>
-        <li>Add the denpendencies: Expand the project node in the project browser. Right click on the Libraries node and
-            select Add JAR/Folder. Locate the unpacked lib folder and select and add all JARs in that folder. All jar files shall now
+        <li>Unpack the GIL package gil-x.x.zip file and copy the content the two directories, files and lib, to the root of your project folder. </li>
+        <li>Add the dependencies: In NetBeans expand the project node in the project browser. Right click on the Libraries node and
+            select Add JAR/Folder. Locate the previously copied lib folder and select and add all JARs in that folder. All jar files shall now
             be listed under the Libraries node. </li>
-        <li>There are javadoc documentation for the GIL framework for code completion and on-line help. To add javadoc: right click on the Libraries node in the project browser window and
+        <li>There are javadoc documentation for the GIL framework for code completion and on-line help. To add javadoc: In NetBeans right click on the Libraries node in the project browser window and
             select properties. In the opened window select the Libraries category. Select the gil-x.x.jar and click Edit. Select Browse for javadoc and locate
             the unpacked files/doc/javadoc folder. Add this folder by click open followed by OK and OK. You can now right click the gil-x.x.jar node in the project
             browser and select Show Javadoc.</li>
@@ -36,7 +35,7 @@
     There is one configuration file with settings for the GIL.
     <ol>
         <li>Copy the gil.config.xml file from the files folder to the project root folder.</li>
-        <li>Edit the gil.config.xml and make these two changes:
+        <li>Edit the gil.config.xml and make these two changes to the &lt;appSettings&gt; section:
     <div class="sourcecode">
       <pre>
 
@@ -67,13 +66,13 @@ Analog      Float32        1       ToES      pm2              es2         "Examp
 Analog      Float32        4       ToES      pmA2             esA2        "An array example"   0       10000  0       100
       </pre>
     </div>
-            Since the example adapters only are build for float values no other datatypes than Float32 may be added to the SEL file in this example.
+            Since the example adapters only supports float values no other datatypes than Float32 may be added to the SEL file in this example.
         </li>
     </ol>
 
     <h3>Write java source</h3>
     <p>The entry point for your integration solution is the Main.java file created when you created the project.</p>
-    <p>Open the Main.java file and alter the content to look like this (except the package declaration that may be
+    <p>In NetBeans, open the Main.java file and alter the content to look like this (except the package declaration that may be
         different depending on the naming of your project):</p>
     
     <div class="sourcecode">
@@ -96,9 +95,9 @@ public class Main {
     <p>GIL.instance().start(9980) Requests the singleton GIL instance and starts the GIL runtime, having the
         built in web server listening on port 9980.</p>
     <p>This is pretty much what have to be done in the simplest GIL application.</p>    
-
     <h3>Do the test run</h3>
-    <p>Right click your project in the project browser and select Run (or just hit F6).</p>
+    <p>Build your application: In NetBeans right click your project in the project browser and select Build
+        (or just hit F11). Right click your project once again and select Run (or just hit F6).</p>
     <p>When the application is started you will see debug printouts in the Output window. If it is not visible, select
         Output | Output from the Window menu. </p>
     <p>In the output window you will see the "fake" values transferred between the
@@ -109,7 +108,7 @@ public class Main {
                 <li>Every minute at second 15 it generates a RUN command.</li>
                 <li>Every minute at second 55 it generates a FREEZE command.</li>
             </ul>
-
+    <p>To end the application hit Enter in the Output window.</p>
     <h3>Using the Web-interface</h3>
     <p>When you application is running, direct you web-browser to http://localhost:9980/index.html. The GIL web interface
     is presented. From here you can control and monitor GIL.</p>
