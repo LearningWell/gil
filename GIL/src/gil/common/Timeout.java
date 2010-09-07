@@ -26,6 +26,7 @@ package gil.common;
 public class Timeout {
 
     private long _startTime;
+    private long _scheduledAt;
     private long _timeoutInterval;
     private boolean _forcedTimeout = false;
     
@@ -38,6 +39,7 @@ public class Timeout {
     public Timeout(long startTime, long timeout) {
         _startTime = startTime;
         _timeoutInterval = timeout;
+        _scheduledAt = startTime;
     }
 
     /**
@@ -47,13 +49,14 @@ public class Timeout {
      */
     public Timeout(long timeout) {
         _startTime = 0;
+        _scheduledAt = 0;
         _timeoutInterval = timeout;
     }
 
     /**
      * Returns true if the timeout is met.
      * Given the encapsulated start time and timeout interval; returns true if the timeout has been passed.
-     * Also returns true if the given currentTime is less than the encapsulated startTime.
+     * Also returns true if the given currentTime is less than the current time when scheduled.
      */
     public boolean isTimeout(long currentTime) {
         if (_forcedTimeout) {
@@ -62,7 +65,7 @@ public class Timeout {
         }
         if (_timeoutInterval == 0)
             return false;        
-        return ((currentTime - _startTime) >= _timeoutInterval) || (currentTime < _startTime);
+        return ((currentTime - _startTime) >= _timeoutInterval) || (currentTime < _scheduledAt);
     }
 
     /**
@@ -73,6 +76,7 @@ public class Timeout {
      */
     public void reset(long startTime) {
         _startTime = startTime;
+        _scheduledAt = startTime;
     }
 
     /**
@@ -106,6 +110,7 @@ public class Timeout {
         if (_timeoutInterval <= 0)
             return 0;
 
+        _scheduledAt = currentTime;
         long elapsedTime = currentTime - _startTime;
         long elapsedFrames = elapsedTime / _timeoutInterval;
 

@@ -65,11 +65,11 @@ public class ProcessModelProcedure  {
 
     private volatile boolean _reconnect = false;
     private volatile int _droppedProcessModelFrames;
-    private volatile int _droppedExternalSystemFrames;
     private volatile int _dataReadFailureCount;
     private volatile int _dataWriteFailureCount;
     private volatile int _commandReadFailureCount;
-    private volatile int _simTimeReadFailureCount;
+    private volatile int _writeFrameCount;
+    private volatile int _readFrameCount;
 
 
     /**
@@ -114,13 +114,6 @@ public class ProcessModelProcedure  {
     /**
      * This method is thread safe
      */
-    public int getDroppedExternalSystemFrames() {
-        return _droppedExternalSystemFrames;
-    }
-
-    /**
-     * This method is thread safe
-     */
     public int getDataReadFailureCount() {
         return _dataReadFailureCount;
     }
@@ -142,8 +135,12 @@ public class ProcessModelProcedure  {
     /**
      * This method is thread safe
      */
-    public int getSimTimeReadFailureCount() {
-        return _simTimeReadFailureCount;
+    public int getWriteFrameCount() {
+        return _writeFrameCount;
+    }
+
+    public int getReadFrameCount() {
+        return _readFrameCount;
     }
 
     public int getProcessModelState() {
@@ -217,7 +214,8 @@ public class ProcessModelProcedure  {
                 _idleTransfer.reset(currentTimeInMilliseconds);
                 _idleTransfer.forceTimeout();
                 synchronized(_context) {
-                    _context.pendingTransferToPM.clear();
+                    _context.pendingSimCommands.clear();
+                    _context.pendingTransferToES.clear();
                 }
                 _reconnect = false;
                 return new ConnectedState();
@@ -236,7 +234,7 @@ public class ProcessModelProcedure  {
 
                 ValueResult<SimTime> simTimeResult = _pmAdapter.getSimTime();
                 if (!simTimeResult.isSuccess()) {
-                    ++_simTimeReadFailureCount;
+                    ++_commandReadFailureCount;
                     _logger.warn("Failure reading process model time: " + simTimeResult.getErrorDescription());
                     return this;
                 }
@@ -245,9 +243,12 @@ public class ProcessModelProcedure  {
                 if (stepChange > 0) {
                     this.addPendingTransferToExternalSystem();
                     if (stepChange > 1) {
+                        // The process model has advanced more than a single time step since last 
+                        // check resulting in lost frames.
                         _droppedProcessModelFrames += stepChange - 1;
-                        _logger.warn(String.format("Dropped %d PM-frame(s)", stepChange - 1));
-                    }
+                        _readFrameCount += stepChange - 1;
+                        _logger.warn(String.format("Dropped %d PM-frame(s) due to PM frame changes.", stepChange - 1));
+                    }                    
                     _idleTransfer.reset(currentTimeInMilliseconds);
 
                 }
@@ -255,7 +256,10 @@ public class ProcessModelProcedure  {
                     this.addPendingTransferToExternalSystem();
                     long timeoutCount = _idleTransfer.reschedule(currentTimeInMilliseconds);
                     if (timeoutCount > 1) {
+                        // More than a single timeout has ocurred since last 
+                        // check resulting in lost frames.
                         _droppedProcessModelFrames += (timeoutCount - 1);
+                        _readFrameCount += (timeoutCount - 1);
                         _logger.warn(String.format("Overrun when transferring data. Dropped %d PM-frame(s)", timeoutCount - 1));
                     }                    
                 }
@@ -292,10 +296,8 @@ public class ProcessModelProcedure  {
 
         private void writeProcessDataToProcessModel() throws IOException {
             ByteBuffer valuesToPM;
-            int remainingTransfers;
             synchronized (_context) {
                 valuesToPM = _context.pendingTransferToPM.pollLast();
-                remainingTransfers = _context.pendingTransferToPM.size();
                 _context.pendingTransferToPM.clear();
             }
 
@@ -305,13 +307,11 @@ public class ProcessModelProcedure  {
                 _logger.debug("Done processing signals transferred to PM");
 
                 Result result = _pmAdapter.writeSignalData(valuesToPM);
-                if (!result.isSuccess()) {
+                if (result.isSuccess()) {
+                    ++_writeFrameCount;
+                } else {
                     ++_dataWriteFailureCount;
-                    _logger.warn("Failure writing signals: " + result.getErrorDescription());
-                }
-                if (remainingTransfers > 0) {
-                    _droppedExternalSystemFrames += remainingTransfers;
-                    _logger.warn(String.format("Dropped %d ES-frame(s)", remainingTransfers));
+                    _logger.warn("Failure writing signals: " + result.getErrorDescription());                    
                 }
             }
         }
@@ -330,6 +330,12 @@ public class ProcessModelProcedure  {
                     _pipeline.processSignals(valuesBuf, DataflowDirection.ToES);
                     _logger.debug("Done processing signals transferred to ES");
                     valuesBuf.rewind();
+                    if (!_context.pendingTransferToES.isEmpty()) {
+                        _logger.warn(String.format("Dropped %d PM frames(s) due to still pending transfers.", _context.pendingTransferToES.size()));
+                        _droppedProcessModelFrames += _context.pendingTransferToES.size();
+                        _context.pendingTransferToES.clear();
+                    }
+                    ++_readFrameCount;
                     _context.pendingTransferToES.add(valuesBuf);
                 }
             } else {

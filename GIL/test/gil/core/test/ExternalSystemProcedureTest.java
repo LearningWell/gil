@@ -61,8 +61,8 @@ public class ExternalSystemProcedureTest {
         when(_esAdapterMock.connect()).thenReturn(true);
         _procedure.runOnce(1);
         assertTrue(_procedure.currentState() instanceof ExternalSystemProcedure.ConnectedState);
-        assertEquals(0, context.pendingTransferToES.size());
-        assertEquals(0, context.pendingSimCommands.size());
+        assertEquals(1, context.pendingTransferToES.size());
+        assertEquals(1, context.pendingSimCommands.size());
     }
 
     @Test
@@ -100,32 +100,22 @@ public class ExternalSystemProcedureTest {
         _procedure.runOnce(2);
         assertTrue(_procedure.currentState() instanceof ExternalSystemProcedure.DisconnectedState);
         assertEquals(SimState.UNKNOWN, _procedure.getExternalSystemState());
-        assertEquals(SystemStatus.UNKNOWN, _procedure.getExternalSystemStatus().getStatusCode());
+        assertEquals(SystemStatus.NOK, _procedure.getExternalSystemStatus().getStatusCode());
         
-        // Expect to be in error state when adapter has thrown exception when connecting. Expect state to be
+        // Expect to be in disconnected state when adapter has thrown exception when connecting. Expect state to be
         // unknown and status to be NOK. The status description is expected to be the message as the error message
         // in the exception thrown by the adapter.
         when(_esAdapterMock.connect()).thenThrow(new IOException("errmsg from ES-adapter"));
         _procedure.runOnce(3);
-        assertTrue(_procedure.currentState() instanceof ExternalSystemProcedure.ErrorState);
+        assertTrue(_procedure.currentState() instanceof ExternalSystemProcedure.DisconnectedState);
         assertEquals(SimState.UNKNOWN, _procedure.getExternalSystemState());
         assertEquals(SystemStatus.NOK, _procedure.getExternalSystemStatus().getStatusCode());
         assertEquals("errmsg from ES-adapter", _procedure.getExternalSystemStatus().getDescription());
     }
 
     @Test
-    public void expect_error_state_if_connection_to_external_system_fails() throws Exception {
+    public void expect_to_stay_in_DisconnectedState_if_connection_to_external_system_fails() throws Exception {
         when(_esAdapterMock.connect()).thenThrow(new IOException("errmsg from ES-adapter"));
-        _procedure.runOnce(1);
-        assertTrue(_procedure.currentState() instanceof ExternalSystemProcedure.ErrorState);
-    }
-
-    @Test
-    public void expect_state_transition_from_error_to_disconnected_when_reconnect_is_called() throws Exception {
-        when(_esAdapterMock.connect()).thenThrow(new IOException("errmsg from ES-adapter"));
-        _procedure.runOnce(1);
-        assertTrue(_procedure.currentState() instanceof ExternalSystemProcedure.ErrorState);
-        _procedure.reconnect();
         _procedure.runOnce(1);
         assertTrue(_procedure.currentState() instanceof ExternalSystemProcedure.DisconnectedState);
     }
@@ -212,7 +202,6 @@ public class ExternalSystemProcedureTest {
         assertEquals(1, context.pendingSimCommands.size());
     }
 
-
     ////////////////////////////////////////////////////////////////////////////////////////
     // Tests of successful and unsuccessful write of pending signal data to the external system
     ////////////////////////////////////////////////////////////////////////////////////////
@@ -231,7 +220,6 @@ public class ExternalSystemProcedureTest {
 
         verify(_esAdapterMock).writeSignalData(buffer);
 
-        assertEquals(0, _procedure.getDroppedProcessModelFrames());
         assertEquals(0, _procedure.getDataWriteFailureCount());
     }
 
@@ -253,7 +241,6 @@ public class ExternalSystemProcedureTest {
 
         verify(_esAdapterMock, times(1)).writeSignalData((ByteBuffer) any());
 
-        assertEquals(2, _procedure.getDroppedProcessModelFrames());
         // Even though only a single write is done, all pending writes shall be cleared
         assertEquals(0, _procedure.getDataWriteFailureCount());
     }
@@ -299,12 +286,11 @@ public class ExternalSystemProcedureTest {
     // Tests of successful and unsuccessful reading of signal data from the external system.
     // On succes the data shall be added as pending data transfers to the process model
     ////////////////////////////////////////////////////////////////////////////////////////
-
     @Test
     public void expect_added_pending_transfers_to_PM_when_there_is_data_available() throws Exception {
         _doFirstRunOnceCallToConnect();
 
-        when(_esAdapterMock.readSignalData((ByteBuffer)any())).thenReturn(new Result(true));
+        when(_esAdapterMock.readSignalData((ByteBuffer)any())).thenReturn(new Result(true)).thenReturn(null);
 
         _procedure.runOnce(1);
 
@@ -333,7 +319,7 @@ public class ExternalSystemProcedureTest {
 
         _doFirstRunOnceCallToConnect();
 
-        when(_esAdapterMock.readSignalData((ByteBuffer)any())).thenReturn(new Result(false));
+        when(_esAdapterMock.readSignalData((ByteBuffer)any())).thenReturn(new Result(false)).thenReturn(null);
 
         _procedure.runOnce(1);
 
@@ -353,6 +339,26 @@ public class ExternalSystemProcedureTest {
         verify(_esAdapterMock).disconnect();
         assertTrue(_procedure.currentState() instanceof ExternalSystemProcedure.DisconnectedState);
     }
+
+
+    @Test
+    public void expect_dropped_External_system_frames_to_be_incremented_when_more_than_a_single_data_transfer_is_pending() throws Exception {
+        ByteBuffer buf0 = ByteBuffer.allocate(BUF_SIZE);
+
+        _doFirstRunOnceCallToConnect();
+
+        context.pendingTransferToPM.add(buf0);
+        context.pendingTransferToPM.add(buf0);
+        context.pendingTransferToPM.add(buf0);
+
+        when(_esAdapterMock.readSignalData((ByteBuffer)any())).thenReturn(new Result(true)).thenReturn(null);
+
+        _procedure.runOnce(1);
+        
+        assertEquals(3, _procedure.getDroppedExternalSystemFrames());
+        assertEquals(1, context.pendingTransferToPM.size());
+    }
+
 
     ////////////////////////////////////////////////////////////////////////////////////////
     // timeStepControl calls
@@ -445,11 +451,6 @@ public class ExternalSystemProcedureTest {
         verify(_esAdapterMock, never()).executeSimCommand((Command)any());
     }
 
-    private void _doFirstRunOnceCallToConnect() throws Exception {
-        ESAdapterCapabilities cap = new ESAdapterCapabilities();
-        _doFirstRunOnceCallToConnect(cap);
-        _procedure.runOnce(0);
-    }
 
     ////////////////////////////////////////////////////////////////////////////////////////
     // Control commands
@@ -477,6 +478,12 @@ public class ExternalSystemProcedureTest {
         assertEquals("v1", argument.getValue().getParameter("p1"));
     }
 
+    private void _doFirstRunOnceCallToConnect() throws Exception {
+        ESAdapterCapabilities cap = new ESAdapterCapabilities();
+        _doFirstRunOnceCallToConnect(cap);
+        _procedure.runOnce(0);
+    }
+
     private void _doFirstRunOnceCallToConnect(ESAdapterCapabilities cap) throws Exception {
         when(_esAdapterMock.connect()).thenReturn(true);
         when(_esAdapterMock.getStatus()).thenReturn(new SystemStatus(SystemStatus.OK, "its OK"));
@@ -486,4 +493,5 @@ public class ExternalSystemProcedureTest {
         when(_esAdapterMock.connect()).thenReturn(true);
         _procedure.runOnce(0);
     }
+  
 }

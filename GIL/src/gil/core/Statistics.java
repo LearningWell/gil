@@ -24,16 +24,20 @@ package gil.core;
  */
     public class Statistics {
         public Statistics(int droppedFrames, int commandFailureCount,
-                int dataWriteFailureCount, int dataReadFailureCount) {
+                int dataWriteFailureCount, int dataReadFailureCount, int readFrameCount, int writeFrameCount) {
 
             this.droppedFrames = droppedFrames;
             this.commandFailureCount = commandFailureCount;            
             this.dataWriteFailureCount = dataWriteFailureCount;
             this.dataReadFailureCount = dataReadFailureCount;
+            this.readFrameCount = readFrameCount;
+            this.writeFrameCount = writeFrameCount;
         }
 
         public final int droppedFrames;
         public final int commandFailureCount;
         public final int dataWriteFailureCount;
         public final int dataReadFailureCount;
+        public final int readFrameCount;
+        public final int writeFrameCount;
     }

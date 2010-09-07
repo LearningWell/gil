@@ -46,5 +46,7 @@ public class StatisticsPage extends MasterPage {
         div.addContent(new Heading("Data write failures", Heading.H4)).addContent(new PlainText(Integer.toString(s.dataWriteFailureCount)));
         div.addContent(new Heading("Data read failures", Heading.H4)).addContent(new PlainText(Integer.toString(s.dataReadFailureCount)));
         div.addContent(new Heading("Command failures", Heading.H4)).addContent(new PlainText(Integer.toString(s.commandFailureCount)));
+        div.addContent(new Heading("Successful frames read", Heading.H4)).addContent(new PlainText(Integer.toString(s.readFrameCount)));
+        div.addContent(new Heading("Successful frames written", Heading.H4)).addContent(new PlainText(Integer.toString(s.writeFrameCount)));
     }
 }

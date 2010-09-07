@@ -70,7 +70,7 @@ public class ProcessModelProcedureTest {
         when(_pmAdapterMock.getSimTime()).thenReturn(new ValueResult<SimTime>(new SimTime(2009, 1, 1, 1, 1, 1, 50)));
         _procedure.runOnce(0);
         assertTrue(_procedure.currentState() instanceof ProcessModelProcedure.ConnectedState);
-        assertEquals(0, context.pendingTransferToPM.size());
+        assertEquals(1, context.pendingTransferToPM.size());
     }
 
     @Test
@@ -177,7 +177,7 @@ public class ProcessModelProcedureTest {
     // Tests of unsuccessful reads of the sim time
     ////////////////////////////////////////////////////////////////////////////////////////
     @Test
-    public void expect_read_sim_time_failure_count_to_be_incremented_if_failure_when_reading_time_from_process_model() throws Exception{
+    public void expect_command_read_failure_count_to_be_incremented_if_failure_when_reading_time_from_process_model() throws Exception{
 
         doFirstRunOnceCallToConnect();
         
@@ -185,7 +185,8 @@ public class ProcessModelProcedureTest {
 
         _procedure.runOnce(0);
 
-        assertEquals(1, _procedure.getSimTimeReadFailureCount());
+        assertEquals(1, _procedure.getCommandReadFailureCount());
+        assertEquals(1, _procedure.getReadFrameCount()); // when connecting connect
     }
 
     @Test
@@ -268,6 +269,7 @@ public class ProcessModelProcedureTest {
         assertEquals(1, context.pendingTransferToES.size());
         ByteBuffer values = context.pendingTransferToES.pollFirst();
         verify(_pmAdapterMock).readSignalData(same(values));
+        assertEquals(2, _procedure.getReadFrameCount());
     }
 
     @Test
@@ -294,6 +296,7 @@ public class ProcessModelProcedureTest {
 
         verify(_pipeline, never()).processSignals(any(ByteBuffer.class), any(DataflowDirection.class));
         assertEquals(0, context.pendingTransferToES.size());
+        assertEquals(1, _procedure.getReadFrameCount());
     }
 
     @Test
@@ -311,6 +314,7 @@ public class ProcessModelProcedureTest {
         verify(_pipeline, never()).processSignals(any(ByteBuffer.class), any(DataflowDirection.class));
         assertEquals(0, context.pendingTransferToES.size());
         assertEquals(1, _procedure.getDataReadFailureCount());
+        assertEquals(1, _procedure.getReadFrameCount());
     }
 
     @Test
@@ -350,25 +354,31 @@ public class ProcessModelProcedureTest {
         assertEquals(1, context.pendingTransferToES.size());
         ByteBuffer values = context.pendingTransferToES.pollFirst();
         verify(_pmAdapterMock, times(1)).readSignalData(same(values));
+        assertEquals(2, _procedure.getReadFrameCount());
     }
 
     @Test
     public void expect_elapsed_time_adjustment_to_timeout() throws Exception {
         doFirstRunOnceCallToConnect();
 
-        _procedure.runOnce(70000);
-        _procedure.runOnce(80000);
+        _procedure.runOnce(70000); // expect next timeout at 80000 not 70000 + 40000.
+        assertEquals(1, context.pendingTransferToES.size());
+        assertEquals(2, _procedure.getReadFrameCount());
+        assertEquals(0, _procedure.getDroppedProcessModelFrames());
 
-        assertEquals(2, context.pendingTransferToES.size());
+        _procedure.runOnce(80000);       
+        assertEquals(1, context.pendingTransferToES.size());
+        assertEquals(3, _procedure.getReadFrameCount());
+        assertEquals(1, _procedure.getDroppedProcessModelFrames());
     }
 
     @Test
     public void expect_dropped_Process_model_frames_to_be_incremented_when_several_timeouts_have_occurred() throws Exception {
         doFirstRunOnceCallToConnect();
 
-        _procedure.runOnce(80000);
+        _procedure.runOnce(120000);
 
-        assertEquals(1, _procedure.getDroppedProcessModelFrames());
+        assertEquals(2, _procedure.getDroppedProcessModelFrames());
     }
 
     @Test
@@ -405,6 +415,7 @@ public class ProcessModelProcedureTest {
         assertEquals(2, _procedure.getDroppedProcessModelFrames());
 
         when(_pmAdapterMock.getSimTime()).thenReturn(new ValueResult<SimTime>(new SimTime(2009, 1, 1, 1, 1, 1, 700)));
+        context.pendingTransferToES.clear();
 
         _procedure.runOnce(0);
 
@@ -467,34 +478,6 @@ public class ProcessModelProcedureTest {
 
         verify(_pmAdapterMock).disconnect();
         assertTrue(_procedure.currentState() instanceof ProcessModelProcedure.DisconnectedState);
-        assertEquals(0, context.pendingTransferToPM.size());
-    }
-
-    @Test
-    public void expect_dropped_External_system_frames_to_be_incremented_when_more_than_a_single_data_transfer_is_pending() throws Exception {
-        ByteBuffer buf0 = ByteBuffer.allocate(BUF_SIZE);
-        ByteBuffer buf1 = ByteBuffer.allocate(BUF_SIZE);
-        ByteBuffer buf2 = ByteBuffer.allocate(BUF_SIZE);
-
-        doFirstRunOnceCallToConnect();
-
-        context.pendingTransferToPM.add(buf0);
-        context.pendingTransferToPM.add(buf1);
-        context.pendingTransferToPM.add(buf2);
-        _procedure.runOnce(0);
-
-        verify(_pmAdapterMock).writeSignalData(same(buf2));
-        assertEquals(2, _procedure.getDroppedExternalSystemFrames());
-        assertEquals(0, context.pendingTransferToPM.size());
-
-        when(_pmAdapterMock.writeSignalData(same(buf1))).thenReturn(new Result(true));
-
-        context.pendingTransferToPM.add(buf0);
-        context.pendingTransferToPM.add(buf1);
-        _procedure.runOnce(0);
-
-        verify(_pmAdapterMock).writeSignalData(same(buf1));
-        assertEquals(3, _procedure.getDroppedExternalSystemFrames());
         assertEquals(0, context.pendingTransferToPM.size());
     }
 

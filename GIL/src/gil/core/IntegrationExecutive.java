@@ -171,19 +171,21 @@ public class IntegrationExecutive {
     };
 
     public Statistics getExternalSystemStatistics() {
-        return new Statistics(_processModelProcedure.getDroppedExternalSystemFrames(),
+        return new Statistics(_externalSystemProcedure.getDroppedExternalSystemFrames(),
                 _externalSystemProcedure.getCommandWriteFailureCount(),
                 _externalSystemProcedure.getDataWriteFailureCount(),
-                _externalSystemProcedure.getDataReadFailureCount());
+                _externalSystemProcedure.getDataReadFailureCount(),
+                _externalSystemProcedure.getReadFrameCount(),
+                _externalSystemProcedure.getWriteFrameCount());
     }
 
     public Statistics getProcessModelStatistics() {
-        return new Statistics(_processModelProcedure.getDroppedProcessModelFrames()
-                + _externalSystemProcedure.getDroppedProcessModelFrames(),
-                _processModelProcedure.getCommandReadFailureCount()
-                + _processModelProcedure.getSimTimeReadFailureCount(),
+        return new Statistics(_processModelProcedure.getDroppedProcessModelFrames(),
+                _processModelProcedure.getCommandReadFailureCount(),
                 _processModelProcedure.getDataWriteFailureCount(),
-                _processModelProcedure.getDataReadFailureCount());
+                _processModelProcedure.getDataReadFailureCount(),
+                _processModelProcedure.getReadFrameCount(),
+                _processModelProcedure.getWriteFrameCount());
     }
 
     public int getExternalSystemState() {

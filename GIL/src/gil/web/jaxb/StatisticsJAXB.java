@@ -33,17 +33,22 @@ public class StatisticsJAXB {
 
         public AdapterStatistics() {}
 
-        public AdapterStatistics(int droppedFrames, int commandFailureCount, int dataWriteFailureCount, int dataReadFailureCount) {
+        public AdapterStatistics(int droppedFrames, int commandFailureCount, int dataWriteFailureCount, 
+                int dataReadFailureCount, int readFrameCount, int writeFrameCount) {
             this.droppedFrames = droppedFrames;
             this.commandFailureCount = commandFailureCount;
             this.dataWriteFailureCount = dataWriteFailureCount;
             this.dataReadFailureCount = dataReadFailureCount;
+            this.readFrameCount = readFrameCount;
+            this.writeFrameCount = writeFrameCount;
         }
         
         public int droppedFrames;
         public int commandFailureCount;
         public int dataWriteFailureCount;
         public int dataReadFailureCount;
+        public int readFrameCount;
+        public int writeFrameCount;
     }
 
     public AdapterStatistics externalSystem;
@@ -55,8 +60,8 @@ public class StatisticsJAXB {
     public StatisticsJAXB(Statistics esStats, Statistics pmStats) {
 
         externalSystem = new AdapterStatistics(esStats.droppedFrames, esStats.commandFailureCount,
-                esStats.dataWriteFailureCount, esStats.dataReadFailureCount);
+                esStats.dataWriteFailureCount, esStats.dataReadFailureCount, esStats.readFrameCount, esStats.writeFrameCount);
         processModel = new AdapterStatistics(pmStats.droppedFrames, pmStats.commandFailureCount,
-                pmStats.dataWriteFailureCount, pmStats.dataReadFailureCount);
+                pmStats.dataWriteFailureCount, pmStats.dataReadFailureCount, pmStats.readFrameCount, pmStats.writeFrameCount);
     }
 }
