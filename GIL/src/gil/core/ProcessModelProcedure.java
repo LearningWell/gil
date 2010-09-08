@@ -102,45 +102,9 @@ public class ProcessModelProcedure  {
         return _currentState;
     }
 
-    /**
-     * This method is thread safe
-     * @return the number of frames dropped caused by the process model simulator time has advanced more than a
-     * single frame between two subsequent process data reads.
-     */
-    public int getDroppedProcessModelFrames() {
-        return _droppedProcessModelFrames;
-    }
-
-    /**
-     * This method is thread safe
-     */
-    public int getDataReadFailureCount() {
-        return _dataReadFailureCount;
-    }
-
-    /**
-     * This method is thread safe
-     */
-    public int getDataWriteFailureCount() {
-        return _dataWriteFailureCount;
-    }
-
-    /**
-     * This method is thread safe
-     */
-    public int getCommandReadFailureCount() {
-        return _commandReadFailureCount;
-    }
-
-    /**
-     * This method is thread safe
-     */
-    public int getWriteFrameCount() {
-        return _writeFrameCount;
-    }
-
-    public int getReadFrameCount() {
-        return _readFrameCount;
+    public Statistics getStatistics() {
+        return new Statistics(_droppedProcessModelFrames, _commandReadFailureCount,
+                _dataWriteFailureCount, _dataReadFailureCount, _readFrameCount, _writeFrameCount);
     }
 
     public int getProcessModelState() {

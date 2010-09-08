@@ -27,6 +27,7 @@ import org.apache.log4j.Logger;
 import gil.io.*;
 import gil.common.CurrentTime;
 import gil.common.GILConfiguration;
+import gil.common.Timeout;
 
 /**
  * This class manages the data and command interchange between the process model and an external system.
@@ -34,6 +35,8 @@ import gil.common.GILConfiguration;
  * @author Göran Larsson @ LearningWell AB
  */
 public class IntegrationExecutive {    
+    private static final int _UPDATE_TIMEOUT = 1 * 1000; //in milliseconds
+
     private volatile int _externalSystemState = SimState.UNKNOWN;
     private volatile SystemStatus _externalSystemStatus = new SystemStatus(SystemStatus.UNKNOWN, "");
     private volatile int _processModelState = SimState.UNKNOWN;
@@ -42,6 +45,8 @@ public class IntegrationExecutive {
     private volatile ProgressChangedEventArgs _currentPMActivity = new ProgressChangedEventArgs(0, "Not available", true);
     private volatile boolean _stopESThread;
     private volatile boolean _stopPMThread;
+    private volatile Statistics _externalSystemStatistics = new Statistics(0, 0, 0, 0, 0, 0);
+    private volatile Statistics _processModelStatistics = new Statistics(0, 0, 0, 0, 0, 0);
 
     private Thread _externalSystemThread;
     private Thread _processModelThread;
@@ -53,6 +58,8 @@ public class IntegrationExecutive {
     private ITransferPipeline _pipeline;
     private AdapterValueObject _esAdapterVO;
     private AdapterValueObject _pmAdapterVO;
+    private Timeout _esVarsUpdateTimer = new Timeout(0, _UPDATE_TIMEOUT);
+    private Timeout _pmVarsUpdateTimer = new Timeout(0, _UPDATE_TIMEOUT);
 
 
     /**
@@ -139,8 +146,12 @@ public class IntegrationExecutive {
             {
                 while(!_stopESThread) {
                     _externalSystemProcedure.runOnce(CurrentTime.instance().inMilliseconds());
-                    _externalSystemState = _externalSystemProcedure.getExternalSystemState();
-                    _externalSystemStatus = _externalSystemProcedure.getExternalSystemStatus();
+                    if (_esVarsUpdateTimer.isTimeout(System.currentTimeMillis())) {
+                        _externalSystemState = _externalSystemProcedure.getExternalSystemState();
+                        _externalSystemStatus = _externalSystemProcedure.getExternalSystemStatus();
+                        _externalSystemStatistics = _externalSystemProcedure.getStatistics();
+                        _esVarsUpdateTimer.reset(System.currentTimeMillis());
+                    }
                     Thread.sleep(1);
                 }
             }
@@ -158,8 +169,12 @@ public class IntegrationExecutive {
             {
                 while(!_stopPMThread) {
                     _processModelProcedure.runOnce(CurrentTime.instance().inMilliseconds());
-                    _processModelState = _processModelProcedure.getProcessModelState();
-                    _processModelStatus = _processModelProcedure.getProcessModelStatus();
+                    if (_pmVarsUpdateTimer.isTimeout(System.currentTimeMillis())) {
+                        _processModelState = _processModelProcedure.getProcessModelState();
+                        _processModelStatus = _processModelProcedure.getProcessModelStatus();
+                        _processModelStatistics = _processModelProcedure.getStatistics();
+                        _pmVarsUpdateTimer.reset(System.currentTimeMillis());
+                    }
                     Thread.sleep(1);
                 }
             }
@@ -171,21 +186,11 @@ public class IntegrationExecutive {
     };
 
     public Statistics getExternalSystemStatistics() {
-        return new Statistics(_externalSystemProcedure.getDroppedExternalSystemFrames(),
-                _externalSystemProcedure.getCommandWriteFailureCount(),
-                _externalSystemProcedure.getDataWriteFailureCount(),
-                _externalSystemProcedure.getDataReadFailureCount(),
-                _externalSystemProcedure.getReadFrameCount(),
-                _externalSystemProcedure.getWriteFrameCount());
+        return _externalSystemStatistics;
     }
 
     public Statistics getProcessModelStatistics() {
-        return new Statistics(_processModelProcedure.getDroppedProcessModelFrames(),
-                _processModelProcedure.getCommandReadFailureCount(),
-                _processModelProcedure.getDataWriteFailureCount(),
-                _processModelProcedure.getDataReadFailureCount(),
-                _processModelProcedure.getReadFrameCount(),
-                _processModelProcedure.getWriteFrameCount());
+        return _processModelStatistics;
     }
 
     public int getExternalSystemState() {

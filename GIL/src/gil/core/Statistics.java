@@ -30,14 +30,14 @@ package gil.core;
             this.commandFailureCount = commandFailureCount;            
             this.dataWriteFailureCount = dataWriteFailureCount;
             this.dataReadFailureCount = dataReadFailureCount;
-            this.readFrameCount = readFrameCount;
-            this.writeFrameCount = writeFrameCount;
+            this.dataReadCount = readFrameCount;
+            this.dataWriteCount = writeFrameCount;
         }
 
         public final int droppedFrames;
         public final int commandFailureCount;
         public final int dataWriteFailureCount;
         public final int dataReadFailureCount;
-        public final int readFrameCount;
-        public final int writeFrameCount;
+        public final int dataReadCount;
+        public final int dataWriteCount;
     }

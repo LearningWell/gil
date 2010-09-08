@@ -198,7 +198,7 @@ public class ExternalSystemProcedureTest {
 
         _procedure.runOnce(1);
 
-        assertEquals(1, _procedure.getCommandWriteFailureCount());
+        assertEquals(1, _procedure.getStatistics().commandFailureCount);
         assertEquals(1, context.pendingSimCommands.size());
     }
 
@@ -220,7 +220,7 @@ public class ExternalSystemProcedureTest {
 
         verify(_esAdapterMock).writeSignalData(buffer);
 
-        assertEquals(0, _procedure.getDataWriteFailureCount());
+        assertEquals(0, _procedure.getStatistics().dataWriteFailureCount);
     }
 
     @Test
@@ -242,7 +242,7 @@ public class ExternalSystemProcedureTest {
         verify(_esAdapterMock, times(1)).writeSignalData((ByteBuffer) any());
 
         // Even though only a single write is done, all pending writes shall be cleared
-        assertEquals(0, _procedure.getDataWriteFailureCount());
+        assertEquals(0, _procedure.getStatistics().dataWriteFailureCount);
     }
 
     @Test
@@ -277,7 +277,7 @@ public class ExternalSystemProcedureTest {
 
         _procedure.runOnce(1);
 
-        assertEquals(1, _procedure.getDataWriteFailureCount());
+        assertEquals(1, _procedure.getStatistics().dataWriteFailureCount);
         // The second pending data write shall be cleared as usual
         assertEquals(0, context.pendingTransferToES.size());
     }
@@ -297,7 +297,7 @@ public class ExternalSystemProcedureTest {
         assertEquals(1, context.pendingTransferToPM.size());
         ByteBuffer values = context.pendingTransferToPM.pollFirst();
         verify(_esAdapterMock).readSignalData(same(values));
-        assertEquals(0, _procedure.getDataReadFailureCount());
+        assertEquals(0, _procedure.getStatistics().dataReadFailureCount);
     }
 
     @Test
@@ -311,7 +311,7 @@ public class ExternalSystemProcedureTest {
 
         verify(_esAdapterMock).readSignalData((ByteBuffer)any());
         assertEquals(0, context.pendingTransferToPM.size());
-        assertEquals(0, _procedure.getDataReadFailureCount());
+        assertEquals(0, _procedure.getStatistics().dataReadFailureCount);
     }
 
     @Test
@@ -324,7 +324,7 @@ public class ExternalSystemProcedureTest {
         _procedure.runOnce(1);
 
         assertEquals(0, context.pendingTransferToPM.size());
-        assertEquals(1, _procedure.getDataReadFailureCount());
+        assertEquals(1, _procedure.getStatistics().dataReadFailureCount);
     }
 
     @Test
@@ -355,7 +355,7 @@ public class ExternalSystemProcedureTest {
 
         _procedure.runOnce(1);
         
-        assertEquals(3, _procedure.getDroppedExternalSystemFrames());
+        assertEquals(3, _procedure.getStatistics().droppedFrames);
         assertEquals(1, context.pendingTransferToPM.size());
     }
 
@@ -386,18 +386,18 @@ public class ExternalSystemProcedureTest {
         when(_esAdapterMock.timeStepControl()).thenReturn(new Result(true));
 
         _procedure.runOnce(1);
-        assertEquals(0, _procedure.getDataWriteFailureCount());
+        assertEquals(0, _procedure.getStatistics().dataWriteFailureCount);
 
         context.esFrameCount = 1;
         when(_esAdapterMock.timeStepControl()).thenReturn(new Result(false));
         _procedure.runOnce(2);
-        assertEquals(1, _procedure.getDataWriteFailureCount());
+        assertEquals(1, _procedure.getStatistics().dataWriteFailureCount);
 
 
         context.esFrameCount = 2;
         when(_esAdapterMock.timeStepControl()).thenReturn(new Result(true));
         _procedure.runOnce(3);
-        assertEquals(1, _procedure.getDataWriteFailureCount());
+        assertEquals(1, _procedure.getStatistics().dataWriteFailureCount);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////

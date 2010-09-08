@@ -57,10 +57,13 @@ public class ExternalSystemProcedure  implements IProcedure {
     
     private volatile boolean _reconnect = false;
     private volatile int _commandExecutionFailureCount;
-    private volatile int _droppedProcessModelFrames;
     private volatile int _dataWriteFailureCount;
     private volatile int _dataReadFailureCount;
-
+    private volatile int _droppedExternalSystemFrames;
+    private volatile int _writeFrameCount;
+    private volatile int _readFrameCount;
+    private volatile SystemStatus _disconnectedStatus = new SystemStatus(SystemStatus.UNKNOWN, "");
+    
     /**
      * @param esAdapter The external system boundary class.
      * @param context The context data to be shared between the {@link ExternalSystemProcedure} and the
@@ -83,32 +86,9 @@ public class ExternalSystemProcedure  implements IProcedure {
         _controlCommandInvoker.executeNextCommandInQueue();
     }
 
-    /**
-     * This method is thread safe
-     */
-    public int getCommandWriteFailureCount() {
-        return _commandExecutionFailureCount;
-    }
-
-    /**
-     * This method is thread safe
-     */
-    public int getDroppedProcessModelFrames() {
-        return _droppedProcessModelFrames;
-    }
-
-    /**
-     * This method is thread safe
-     */
-    public int getDataWriteFailureCount() {
-        return _dataWriteFailureCount;
-    }
-
-    /**
-     * This method is thread safe
-     */
-    public int getDataReadFailureCount() {
-        return _dataReadFailureCount;
+    public Statistics getStatistics() {
+        return new Statistics(_droppedExternalSystemFrames, _commandExecutionFailureCount,
+                _dataWriteFailureCount, _dataReadFailureCount, _readFrameCount, _writeFrameCount);
     }
 
     public int getExternalSystemState() {
@@ -124,8 +104,8 @@ public class ExternalSystemProcedure  implements IProcedure {
             return new SystemStatus(SystemStatus.NOT_AVAILABLE, "The adapter does not support status reporting.");
         if (_currentState instanceof ConnectedState)
             return _esAdapter.getStatus();
-        if (_currentState instanceof ErrorState)
-            return new SystemStatus(SystemStatus.NOK, ((ErrorState)_currentState).getCause());
+        if (_currentState instanceof DisconnectedState)
+            return _disconnectedStatus;
 
         return new SystemStatus(SystemStatus.UNKNOWN, "Not connected");
     }
@@ -171,15 +151,16 @@ public class ExternalSystemProcedure  implements IProcedure {
                     return this;
                 }
                 synchronized(_context) {
-                    _context.pendingSimCommands.clear();
-                    _context.pendingTransferToES.clear();
+                    _context.pendingTransferToPM.clear();
                 }
                 _reconnect = false;
                 return new ConnectedState();
             } catch(IOException ex) {
+                 _disconnectedStatus = new SystemStatus(SystemStatus.NOK, ex.getMessage());
                 _logger.error("Failure when connecting: " + ex.getMessage());
                 _logger.debug(ex.getMessage(), ex);
-                return new ErrorState(ex.getMessage());
+                _esAdapter.disconnect();
+                return this;
             }
         }
     }
@@ -208,20 +189,32 @@ public class ExternalSystemProcedure  implements IProcedure {
 
                 if (_readTimeout.isTimeout(currentTimeInMilliseconds)) {
                     _readTimeout.reset(currentTimeInMilliseconds);
-                    Result result = _esAdapter.readSignalData(_valuesBuf);
-                    if (result != null) {
-                        if (result.isSuccess()) {
-                            synchronized(_context) {
+                    Result result = null;
+                    do {
+                        result = _esAdapter.readSignalData(_valuesBuf);
+                        if (result != null) {
+                            if (result.isSuccess()) {
                                 _valuesBuf.rewind();
-                                _context.pendingTransferToPM.add(_valuesBuf);
-                                _valuesBuf = null;
+                                synchronized(_context) {                                    
+                                    if (!_context.pendingTransferToPM.isEmpty()) {
+                                        _droppedExternalSystemFrames += _context.pendingTransferToPM.size();
+                                        _logger.warn(String.format("Dropped %d ES-frame(s) due to still pending transfers.", _context.pendingTransferToPM.size()));
+                                        _context.pendingTransferToPM.clear();
+                                    }
+                                    _context.pendingTransferToPM.add(_valuesBuf);
+                                }
+                                ++_readFrameCount;
                             }
+                            else {
+                                _logger.warn("Failed to read: " + result.getErrorDescription());
+                                ++_dataReadFailureCount;
+                            }                            
                         }
-                        else {
-                            _logger.warn("Failed to read: " + result.getErrorDescription());
-                            ++_dataReadFailureCount;
-                        }
-                    }
+                         // Must allocate direct since the buffer may be used across boundaries to native code (JNI).
+                        _valuesBuf = ByteBuffer.allocateDirect(_valuesBufSize);
+                        // Set the order the PM-Adapter expects in the supplied ByteBuffer.
+                        _valuesBuf.order(_config.getPMAdapterByteOrder());
+                    } while (result != null);
                 }
 
                 Command nextCommand;
@@ -244,17 +237,14 @@ public class ExternalSystemProcedure  implements IProcedure {
                 ByteBuffer values;
                 synchronized(_context) {
                     values = _context.pendingTransferToES.pollLast();
-                    if (_context.pendingTransferToES.size() > 0) {
-                        _logger.warn(String.format("Dropped %d PM frames(s)", _context.pendingTransferToES.size()));
-                        _droppedProcessModelFrames += _context.pendingTransferToES.size();
-                        _context.pendingTransferToES.clear();
-                    }
+                    _context.pendingTransferToES.clear();
                 }
                 if (values != null) {
                     _transferSignalDataES(values);
                 }
             } catch(IOException ex) {
                 _logger.error("Failure in communication with external system. ", ex);
+                _disconnectedStatus = new SystemStatus(SystemStatus.NOK, ex.getMessage());
                 _reconnect = true;
             }
             if (_reconnect) {
@@ -266,9 +256,11 @@ public class ExternalSystemProcedure  implements IProcedure {
 
         private void _transferSignalDataES(ByteBuffer values) throws IOException {
             Result result = _esAdapter.writeSignalData(values);
-            if (!result.isSuccess()) {
+            if (result.isSuccess()) {
+                ++_writeFrameCount;
+            } else {
                 _logger.warn("Failed to write: " + result.getErrorDescription());
-                ++_dataWriteFailureCount;
+                ++_dataWriteFailureCount;                
             }
         }
     }

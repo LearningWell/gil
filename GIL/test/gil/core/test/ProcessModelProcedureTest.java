@@ -185,8 +185,8 @@ public class ProcessModelProcedureTest {
 
         _procedure.runOnce(0);
 
-        assertEquals(1, _procedure.getCommandReadFailureCount());
-        assertEquals(1, _procedure.getReadFrameCount()); // when connecting connect
+        assertEquals(1, _procedure.getStatistics().commandFailureCount);
+        assertEquals(1, _procedure.getStatistics().dataReadCount); // when connecting connect
     }
 
     @Test
@@ -246,7 +246,7 @@ public class ProcessModelProcedureTest {
 
         _procedure.runOnce(0);
 
-        assertEquals(1, _procedure.getCommandReadFailureCount());
+        assertEquals(1, _procedure.getStatistics().commandFailureCount);
     }
 
 
@@ -269,7 +269,7 @@ public class ProcessModelProcedureTest {
         assertEquals(1, context.pendingTransferToES.size());
         ByteBuffer values = context.pendingTransferToES.pollFirst();
         verify(_pmAdapterMock).readSignalData(same(values));
-        assertEquals(2, _procedure.getReadFrameCount());
+        assertEquals(2, _procedure.getStatistics().dataReadCount);
     }
 
     @Test
@@ -296,7 +296,7 @@ public class ProcessModelProcedureTest {
 
         verify(_pipeline, never()).processSignals(any(ByteBuffer.class), any(DataflowDirection.class));
         assertEquals(0, context.pendingTransferToES.size());
-        assertEquals(1, _procedure.getReadFrameCount());
+        assertEquals(1, _procedure.getStatistics().dataReadCount);
     }
 
     @Test
@@ -313,8 +313,8 @@ public class ProcessModelProcedureTest {
 
         verify(_pipeline, never()).processSignals(any(ByteBuffer.class), any(DataflowDirection.class));
         assertEquals(0, context.pendingTransferToES.size());
-        assertEquals(1, _procedure.getDataReadFailureCount());
-        assertEquals(1, _procedure.getReadFrameCount());
+        assertEquals(1, _procedure.getStatistics().dataReadFailureCount);
+        assertEquals(1, _procedure.getStatistics().dataReadCount);
     }
 
     @Test
@@ -354,7 +354,7 @@ public class ProcessModelProcedureTest {
         assertEquals(1, context.pendingTransferToES.size());
         ByteBuffer values = context.pendingTransferToES.pollFirst();
         verify(_pmAdapterMock, times(1)).readSignalData(same(values));
-        assertEquals(2, _procedure.getReadFrameCount());
+        assertEquals(2, _procedure.getStatistics().dataReadCount);
     }
 
     @Test
@@ -363,13 +363,13 @@ public class ProcessModelProcedureTest {
 
         _procedure.runOnce(70000); // expect next timeout at 80000 not 70000 + 40000.
         assertEquals(1, context.pendingTransferToES.size());
-        assertEquals(2, _procedure.getReadFrameCount());
-        assertEquals(0, _procedure.getDroppedProcessModelFrames());
+        assertEquals(2, _procedure.getStatistics().dataReadCount);
+        assertEquals(0, _procedure.getStatistics().droppedFrames);
 
         _procedure.runOnce(80000);       
         assertEquals(1, context.pendingTransferToES.size());
-        assertEquals(3, _procedure.getReadFrameCount());
-        assertEquals(1, _procedure.getDroppedProcessModelFrames());
+        assertEquals(3, _procedure.getStatistics().dataReadCount);
+        assertEquals(1, _procedure.getStatistics().droppedFrames);
     }
 
     @Test
@@ -378,7 +378,7 @@ public class ProcessModelProcedureTest {
 
         _procedure.runOnce(120000);
 
-        assertEquals(2, _procedure.getDroppedProcessModelFrames());
+        assertEquals(2, _procedure.getStatistics().droppedFrames);
     }
 
     @Test
@@ -412,14 +412,14 @@ public class ProcessModelProcedureTest {
 
         _procedure.runOnce(0);
 
-        assertEquals(2, _procedure.getDroppedProcessModelFrames());
+        assertEquals(2, _procedure.getStatistics().droppedFrames);
 
         when(_pmAdapterMock.getSimTime()).thenReturn(new ValueResult<SimTime>(new SimTime(2009, 1, 1, 1, 1, 1, 700)));
         context.pendingTransferToES.clear();
 
         _procedure.runOnce(0);
 
-        assertEquals(5, _procedure.getDroppedProcessModelFrames());
+        assertEquals(5, _procedure.getStatistics().droppedFrames);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////
@@ -435,7 +435,7 @@ public class ProcessModelProcedureTest {
         _procedure.runOnce(0);
 
         verify(_pmAdapterMock).writeSignalData(same(buf));
-        assertEquals(0, _procedure.getDataWriteFailureCount());
+        assertEquals(0, _procedure.getStatistics().dataWriteFailureCount);
         assertEquals(0, context.pendingTransferToPM.size());
     }
 
@@ -462,7 +462,7 @@ public class ProcessModelProcedureTest {
         context.pendingTransferToPM.add(buf);
         _procedure.runOnce(0);
 
-        assertEquals(1, _procedure.getDataWriteFailureCount());
+        assertEquals(1, _procedure.getStatistics().dataWriteFailureCount);
         assertEquals(0, context.pendingTransferToPM.size());
     }
 
