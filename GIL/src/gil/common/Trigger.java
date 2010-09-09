@@ -24,20 +24,38 @@ package gil.common;
  */
 public class Trigger<T> {
 
+    public enum Change {
+        NO_CHANGE,
+        CHANGE,
+        CHANGE_TO,
+        CHANGE_FROM
+    }
+
     public Trigger(T initialValue)
     {
         _previousValue = initialValue;
     }
 
-    public boolean isStateChange(T newValue, T changedTo)
+    /**
+     * Returns an indication on change since last call.
+     * <p>
+     * If newValue is changed to the target value since the previous call, CHANGE_TO is returned.
+     * If newValue was equal to targetValue on the previous call and is now changed,  CHANGE_FROM is returned.
+     * If newValue is changed since the previous call but neither to or from the targetValue, CHANGE is returned.
+     */
+    public Change getStateChange(T newValue, T targetValue)
     {
         if (newValue != _previousValue)
         {
+            T prevValue = _previousValue;
             _previousValue = newValue;
-            if (newValue == changedTo)
-                return true;
+            if (prevValue == targetValue)
+                return Change.CHANGE_FROM;
+            if (newValue == targetValue)
+                return Change.CHANGE_TO;
+            return Change.CHANGE;
         }
-        return false;
+        return Change.NO_CHANGE;
     }
 
     T _previousValue;

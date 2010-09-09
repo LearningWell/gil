@@ -35,12 +35,13 @@ public class TriggerTest {
 
         Trigger<Integer> trigger = new Trigger<Integer>(10);
 
-        assertFalse(trigger.isStateChange(10, 11));
-        assertFalse(trigger.isStateChange(11, 12));
-        assertTrue(trigger.isStateChange(12, 12));
-        assertFalse(trigger.isStateChange(12, 12));
-        assertFalse(trigger.isStateChange(11, 12));
-        assertTrue(trigger.isStateChange(12, 12));
+        assertEquals(Trigger.Change.NO_CHANGE, trigger.getStateChange(10, 10));
+        assertEquals(Trigger.Change.NO_CHANGE, trigger.getStateChange(10, 11));
+        assertEquals(Trigger.Change.CHANGE, trigger.getStateChange(11, 12));
+        assertEquals(Trigger.Change.CHANGE_TO, trigger.getStateChange(12, 12));
+        assertEquals(Trigger.Change.NO_CHANGE, trigger.getStateChange(12, 12));
+        assertEquals(Trigger.Change.CHANGE_FROM, trigger.getStateChange(11, 12));
+        assertEquals(Trigger.Change.CHANGE, trigger.getStateChange(10, 12));
+        assertEquals(Trigger.Change.CHANGE_TO, trigger.getStateChange(12, 12));
     }
-
 }
