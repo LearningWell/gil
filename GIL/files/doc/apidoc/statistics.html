@@ -28,6 +28,9 @@
       <tr><td>commandFailureCount</td><td>Icremented if an error occur when executing a simulator command on the external system.</td></tr>      
       <tr><td>dataWriteFailureCount</td><td>Incremented if an error occur when writing process data to the external system.</td></tr>
       <tr><td>dataReadFailureCount</td><td>Incremented if an error occur when reading process data from the external system.</td></tr>
+      <tr><td>dataReadCount</td><td>Process data successfully read from the external system. This value minus droppedFrames shall be equal
+              to dataWriteCount on the process model statistics below.</td></tr>
+      <tr><td>dataWriteCount</td><td>Process data successfully written to the external system.</td></tr>
       <tr><th>processModel</th></tr>
       <tr><td>droppedFrames</td><td>The process model is checked cyclically to detect frame changes. 
       When a frame change is detected, the process data is read from the process model and added as pending transfers to the external system. If more than a single frame change is detected in one cycle the droppedFrames counter is incremented by the number of frame changes minus one.
@@ -35,25 +38,33 @@
       <tr><td>commandFailureCount</td><td>For each process model frame change, the process model is checked for simulator commands. 
       If an error occur during this check the commandFailureCount is incremented.</td></tr>
       <tr><td>dataWriteFailureCount</td><td>Incremented if an error occur when writing process data to the process models.</td></tr>
-      <tr><td>dataReadFailureCount</td><td>Incremented if an error occur when reading process data from the process models.</td></tr>      
+      <tr><td>dataReadFailureCount</td><td>Incremented if an error occur when reading process data from the process models.</td></tr>
+      <tr><td>dataReadCount</td><td>Process data successfully read from the process model. This value minus droppedFrames shall be equal
+              to dataWriteCount on the external system statistics above.</td></tr>
+      <tr><td>dataWriteCount</td><td>Process data successfully written to the process
+              model.</td></tr>
     </table>    
     <h3>Response example(s):</h3>
     <h4>XML:</h4>
     <div class="sourcecode">
       <pre>
 &lt;statistics&gt;
-  &lt;externalSystem&gt;
-    &lt;droppedFrames&gt;7&lt;/droppedFrames&gt;
-    &lt;commandFailureCount&gt;0&lt;/commandFailureCount&gt;
-    &lt;dataWriteFailureCount&gt;0&lt;/dataWriteFailureCount&gt;
-    &lt;dataReadFailureCount&gt;0&lt;/dataReadFailureCount&gt;
-  &lt;/externalSystem&gt;
-  &lt;processModel&gt;
-    &lt;droppedFrames&gt;40&lt;/droppedFrames&gt;
-    &lt;commandFailureCount&gt;0&lt;/commandFailureCount&gt;
-    &lt;dataWriteFailureCount&gt;0&lt;/dataWriteFailureCount&gt;
-    &lt;dataReadFailureCount&gt;0&lt;/dataReadFailureCount&gt;
-  &lt;/processModel&gt;
+    &lt;externalSystem&gt;
+        &lt;droppedFrames&gt;0&lt;/droppedFrames&gt;
+        &lt;commandFailureCount&gt;0&lt;/commandFailureCount&gt;
+        &lt;dataWriteFailureCount&gt;0&lt;/dataWriteFailureCount&gt;
+        &lt;dataReadFailureCount&gt;0&lt;/dataReadFailureCount&gt;
+        &lt;dataReadCount&gt;0&lt;/dataReadCount&gt;
+        &lt;dataWriteCount&gt;5&lt;/dataWriteCount&gt;
+    &lt;/externalSystem&gt;
+    &lt;processModel&gt;
+        &lt;droppedFrames&gt;2&lt;/droppedFrames&gt;
+        &lt;commandFailureCount&gt;0&lt;/commandFailureCount&gt;
+        &lt;dataWriteFailureCount&gt;0&lt;/dataWriteFailureCount&gt;
+        &lt;dataReadFailureCount&gt;0&lt;/dataReadFailureCount&gt;
+        &lt;dataReadCount&gt;7&lt;/dataReadCount&gt;
+        &lt;dataWriteCount&gt;0&lt;/dataWriteCount&gt;
+    &lt;/processModel&gt;
 &lt;/statistics&gt;
       </pre>
     </div>
