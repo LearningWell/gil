@@ -69,10 +69,9 @@
   <p>GIL will call <a href="javadoc/gil/io/IControlCommandInvokeable.html#invokeControlCommand(gil.core.Command)">invokeControlCommand()</a> to
   execute control commands.</p>
   <h3>Error handling</h3>
-  <p>Methods on adapters may in many cases signal failures either by returning a <a href="javadoc/gil/common/Result.html">Result</a> object indicating failure
-      or throwing an exception.</p>
-  <p>Reported failures will have different consequences depending on the current state. E.g. When connected, an exception will result in a disconnect. When disconnected, an exception will force GIL
-     to an error state.</p>
+  <p>Methods on adapters may in many cases signal failures by either returning a <a href="javadoc/gil/common/Result.html">Result</a> object indicating failure
+      or throwing an exception. The severity of throwing an exception is higher than returning a failure <a href="javadoc/gil/common/Result.html">Result</a> object,
+      causing GIL to reconnect to the external system.</p>
   <img src="images/esCommStates.png" alt="" />
 
   <h3>Close down and Restart</h3>
