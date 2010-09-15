@@ -40,6 +40,7 @@ public class ParametersTest {
         _config.put("int", "123");
         _config.put("double", "123.567");
         _config.put("string", "aString");
+        _config.put("bool", "true");
     }
     Parameters _params = new Parameters(_config);
 
@@ -91,5 +92,29 @@ public class ParametersTest {
     public void expect_exception_when_invalid_double_when_getDoubleParam_is_called() throws Exception {
         _params.getDoubleParam("string");
     }
+
+    @Test
+    public void expect_boolean_when_getBoolParam_is_called() throws Exception {
+        assertTrue(_params.getBoolParam("bool"));
+    }
+
+    @Test
+    public void expect_false_as_default_for_all_strings_when_getBoolParam_is_called() throws Exception {
+        assertFalse(_params.getBoolParam("string"));
+    }
+
+    @Test
+    public void expect_boolean_to_be_insensitive_for_upper_lowe_case_when_getBoolParam_is_called() throws Exception {
+        final Map<String, String> config = new HashMap<String, String>() {{
+            put("boolu", "TRUE");
+            put("booll", "true");            
+        }};
+        Parameters params = new Parameters(config);
+
+        assertTrue(params.getBoolParam("boolu"));
+        assertTrue(params.getBoolParam("booll"));    
+    }
+
+
 
 }

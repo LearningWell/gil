@@ -87,4 +87,13 @@ public class Parameters {
             throw new InvalidParameterException(_errorMsg +  " '" + value + "' is not a valid double.");
         }        
     }
+
+    /**
+     * @return The parameter value as a boolean.
+     * @throws InvalidParameterException If the parameter does not exist.
+     */
+    public boolean getBoolParam(String paramName) throws InvalidParameterException {
+        String value = getParam(paramName);
+        return Boolean.parseBoolean(value);
+    }
 }
