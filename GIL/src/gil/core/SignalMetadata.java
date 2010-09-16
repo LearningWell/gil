@@ -88,6 +88,19 @@ public class SignalMetadata implements Cloneable {
         _attributes = attributes;
     }
 
+    /**
+     * Returns the the size in bytes for the given dataType.
+     */
+    public static int size(SignalDataType dataType) {
+        return _DATA_TYPE_BYTES.get(dataType);
+    }
+
+    /**
+     * Calculates the bytes necessary in a buffer to hold length number of dataType elements.
+     */
+    public static int calcByteCount(SignalDataType dataType, int length) {
+        return _DATA_TYPE_BYTES.get(dataType) * length;
+    }
 
     /**
      * Returns the file line number where this signal metadata was defined. 
@@ -236,7 +249,7 @@ public class SignalMetadata implements Cloneable {
      * signal data specified by this metadata object.
      */
     public int getBufferSize() {
-        return _DATA_TYPE_BYTES.get(this.getDataType()) * _length;
+        return calcByteCount(this.getDataType(), _length);
     }
 
 
