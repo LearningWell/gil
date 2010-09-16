@@ -283,9 +283,8 @@ public class ProcessModelProcedure  {
         private void addPendingTransferToExternalSystem() throws IOException {
 
             // Must allocate direct since the buffer may be used across boundaries to native code (JNI).
-            ByteBuffer valuesBuf = ByteBuffer.allocateDirect(_valuesBufSize);
-            // Set the order the ES-Adapter expects in the supplied ByteBuffer.
-            valuesBuf.order(_config.getESAdapterByteOrder());
+            ByteBuffer valuesBuf = ByteBuffer.allocateDirect(_valuesBufSize);            
+            valuesBuf.order(_config.getPMAdapterByteOrder());
 
             Result result = _pmAdapter.readSignalData(valuesBuf);
             if (result.isSuccess()) {

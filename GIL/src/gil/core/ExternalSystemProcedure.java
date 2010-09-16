@@ -183,8 +183,7 @@ public class ExternalSystemProcedure  implements IProcedure {
                 if (_valuesBuf == null) {
                      // Must allocate direct since the buffer may be used across boundaries to native code (JNI).
                     _valuesBuf = ByteBuffer.allocateDirect(_valuesBufSize);
-                    // Set the order the PM-Adapter expects in the supplied ByteBuffer.
-                    _valuesBuf.order(_config.getPMAdapterByteOrder());
+                    _valuesBuf.order(_config.getESAdapterByteOrder());
                 }
 
                 if (_readTimeout.isTimeout(currentTimeInMilliseconds)) {
@@ -212,8 +211,7 @@ public class ExternalSystemProcedure  implements IProcedure {
                         }
                          // Must allocate direct since the buffer may be used across boundaries to native code (JNI).
                         _valuesBuf = ByteBuffer.allocateDirect(_valuesBufSize);
-                        // Set the order the PM-Adapter expects in the supplied ByteBuffer.
-                        _valuesBuf.order(_config.getPMAdapterByteOrder());
+                        _valuesBuf.order(_config.getESAdapterByteOrder());
                     } while (result != null);
                 }
 
