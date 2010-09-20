@@ -108,8 +108,8 @@ public class IntegrationExecutive {
      * If allready started this method does nothing.
      */
     public void start() throws IOException {        
-        _externalSystemThread = new Thread(_esRunnable);
-        _processModelThread = new Thread(_pmRunnable);
+        _externalSystemThread = new Thread(_esRunnable, "GIL-ES");
+        _processModelThread = new Thread(_pmRunnable, "GIL-PM");
         _stopESThread = false;
         _stopPMThread = false;        
         _logger.info("Integration executive started");
