@@ -36,7 +36,7 @@ public class AboutPage extends MasterPage {
         Div div = new Div("about");
         div.addContent(new Heading("About", Heading.H2));
 
-        div.addContent(new Heading("Current CIR", Heading.H3));
+        div.addContent(new Heading("Current GIL", Heading.H3));
         addVersionInfo(div, info.gilInfo);
         
         div.addContent(new Heading("External System", Heading.H3));
