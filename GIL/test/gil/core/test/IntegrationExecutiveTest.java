@@ -75,6 +75,7 @@ public class IntegrationExecutiveTest {
         when(_pmAdapter.getState()).thenReturn(SimState.UNKNOWN);
         when(_pmAdapter.getStatus()).thenReturn(new SystemStatus(SystemStatus.UNKNOWN,""));
         when(_pmAdapter.addProgressChangeListener(any(IProgressEventListener.class))).thenReturn(false);
+        when(_pmAdapter.getOperatingFrequency()).thenReturn(1);
         when(_esAdapter.availableControlCommands()).thenReturn(new CommandDescriptor[0]);
         when(_pmAdapter.availableControlCommands()).thenReturn(new CommandDescriptor[0]);
     }
@@ -112,7 +113,7 @@ public class IntegrationExecutiveTest {
         instance.start();
         Thread.sleep(200);
         
-        verify(_pmAdapter).getOperatingFrequency();
+        verify(_pmAdapter, times(2)).getOperatingFrequency();
         verify(_esAdapter, atLeast(1)).connect();
         verify(_pmAdapter, atLeast(1)).connect();
     }
