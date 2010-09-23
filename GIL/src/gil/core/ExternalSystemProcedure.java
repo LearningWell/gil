@@ -188,31 +188,28 @@ public class ExternalSystemProcedure  implements IProcedure {
 
                 if (_readTimeout.isTimeout(currentTimeInMilliseconds)) {
                     _readTimeout.reset(currentTimeInMilliseconds);
-                    Result result = null;
-                    do {
-                        result = _esAdapter.readSignalData(_valuesBuf);
-                        if (result != null) {
-                            if (result.isSuccess()) {
-                                _valuesBuf.rewind();
-                                synchronized(_context) {                                    
-                                    if (!_context.pendingTransferToPM.isEmpty()) {
-                                        _droppedExternalSystemFrames += _context.pendingTransferToPM.size();
-                                        _logger.warn(String.format("Dropped %d ES-frame(s) due to still pending transfers.", _context.pendingTransferToPM.size()));
-                                        _context.pendingTransferToPM.clear();
-                                    }
-                                    _context.pendingTransferToPM.add(_valuesBuf);
+                    Result result = _esAdapter.readSignalData(_valuesBuf);
+                    if (result != null) {
+                        if (result.isSuccess()) {
+                            _valuesBuf.rewind();
+                            synchronized(_context) {
+                                if (!_context.pendingTransferToPM.isEmpty()) {
+                                    _droppedExternalSystemFrames += _context.pendingTransferToPM.size();
+                                    _logger.warn(String.format("Dropped %d ES-frame(s) due to still pending transfers.", _context.pendingTransferToPM.size()));
+                                    _context.pendingTransferToPM.clear();
                                 }
-                                ++_readFrameCount;
+                                _context.pendingTransferToPM.add(_valuesBuf);
                             }
-                            else {
-                                _logger.warn("Failed to read: " + result.getErrorDescription());
-                                ++_dataReadFailureCount;
-                            }                            
+                            ++_readFrameCount;
                         }
-                         // Must allocate direct since the buffer may be used across boundaries to native code (JNI).
-                        _valuesBuf = ByteBuffer.allocateDirect(_valuesBufSize);
-                        _valuesBuf.order(_config.getESAdapterByteOrder());
-                    } while (result != null);
+                        else {
+                            _logger.warn("Failed to read: " + result.getErrorDescription());
+                            ++_dataReadFailureCount;
+                        }
+                    }
+                     // Must allocate direct since the buffer may be used across boundaries to native code (JNI).
+                    _valuesBuf = ByteBuffer.allocateDirect(_valuesBufSize);
+                    _valuesBuf.order(_config.getESAdapterByteOrder());
                 }
 
                 Command nextCommand;

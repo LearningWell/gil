@@ -15,7 +15,8 @@
 
     You should have received a copy of the GNU Lesser General Public License
     along with GIL.  If not, see <http://www.gnu.org/licenses/>.
-*/package gil.core;
+*/
+package gil.core;
 
 import java.util.concurrent.ExecutionException;
 import gil.common.IProgressEventListener;
@@ -27,6 +28,7 @@ import org.apache.log4j.Logger;
 import gil.io.*;
 import gil.common.CurrentTime;
 import gil.common.GILConfiguration;
+import gil.common.StopWatch;
 import gil.common.Timeout;
 
 /**
@@ -34,6 +36,7 @@ import gil.common.Timeout;
  *
  * @author Göran Larsson @ LearningWell AB
  */
+@SuppressWarnings("SleepWhileHoldingLock")
 public class IntegrationExecutive {    
     private static final int _UPDATE_TIMEOUT = 1 * 1000; //in milliseconds
 
@@ -47,6 +50,8 @@ public class IntegrationExecutive {
     private volatile boolean _stopPMThread;
     private volatile Statistics _externalSystemStatistics = new Statistics(0, 0, 0, 0, 0, 0);
     private volatile Statistics _processModelStatistics = new Statistics(0, 0, 0, 0, 0, 0);
+    private final long _maxExecTimeForPM;
+    private final long _maxExecTimeForES;
 
     private Thread _externalSystemThread;
     private Thread _processModelThread;
@@ -101,6 +106,9 @@ public class IntegrationExecutive {
 
         _esAdapterVO = createESAdapterValueObject();
         _pmAdapterVO = createPMAdapterValueObject();
+
+        _maxExecTimeForPM = (1000 / _processModel.getOperatingFrequency()) / 5;
+        _maxExecTimeForES = (1000 / _externalSystem.getOperatingFrequency()) / 5;
     }
 
     /**
@@ -113,7 +121,7 @@ public class IntegrationExecutive {
         _stopESThread = false;
         _stopPMThread = false;        
         _logger.info("Integration executive started");
-        _externalSystemThread.start();
+        _externalSystemThread.start();       
         _processModelThread.start();
     }
 
@@ -137,22 +145,27 @@ public class IntegrationExecutive {
         _processModel.tearDown();
     }
 
-    private Runnable _esRunnable = new Runnable() {
+    private Runnable _esRunnable = new Runnable() {        
         public void run() {
             _logger.debug("External system thread started");
             _logger.info("ProcessModel operating frequency: " + _processModel.getOperatingFrequency());
-            _logger.info("ExternalSystem operating frequency: " + _externalSystem.getOperatingFrequency());            
+            _logger.info("ExternalSystem operating frequency: " + _externalSystem.getOperatingFrequency());
+            StopWatch stopWatch = new StopWatch();
             try
             {
                 while(!_stopESThread) {
+                    stopWatch.start();
                     _externalSystemProcedure.runOnce(CurrentTime.instance().inMilliseconds());
-                    if (_esVarsUpdateTimer.isTimeout(System.currentTimeMillis())) {
+                    if (_esVarsUpdateTimer.isTimeout(CurrentTime.instance().inMilliseconds())) {
                         _externalSystemState = _externalSystemProcedure.getExternalSystemState();
                         _externalSystemStatus = _externalSystemProcedure.getExternalSystemStatus();
                         _externalSystemStatistics = _externalSystemProcedure.getStatistics();
-                        _esVarsUpdateTimer.reset(System.currentTimeMillis());
+                        _esVarsUpdateTimer.reset(CurrentTime.instance().inMilliseconds());
                     }
-                    Thread.sleep(1);
+                    
+                    if (stopWatch.getElapsedMilliseconds() < _maxExecTimeForES) {
+                        Thread.sleep(1);
+                    }                    
                 }
             }
             catch(Exception e) {
@@ -165,17 +178,22 @@ public class IntegrationExecutive {
     private Runnable _pmRunnable = new Runnable() {
         public void run() {
             _logger.debug("Process model thread started");
+            StopWatch stopWatch = new StopWatch();
             try
             {
                 while(!_stopPMThread) {
+                    stopWatch.start();
                     _processModelProcedure.runOnce(CurrentTime.instance().inMilliseconds());
-                    if (_pmVarsUpdateTimer.isTimeout(System.currentTimeMillis())) {
+                    if (_pmVarsUpdateTimer.isTimeout(CurrentTime.instance().inMilliseconds())) {
                         _processModelState = _processModelProcedure.getProcessModelState();
                         _processModelStatus = _processModelProcedure.getProcessModelStatus();
                         _processModelStatistics = _processModelProcedure.getStatistics();
-                        _pmVarsUpdateTimer.reset(System.currentTimeMillis());
+                        _pmVarsUpdateTimer.reset(CurrentTime.instance().inMilliseconds());
                     }
-                    Thread.sleep(1);
+                    
+                    if (stopWatch.getElapsedMilliseconds() < _maxExecTimeForPM) {
+                        Thread.sleep(1);
+                    }
                 }
             }
             catch(Exception e) {
@@ -271,7 +289,7 @@ public class IntegrationExecutive {
      */
     public Map<String, String> invokeExternalSystemCommand(String commandID, Map<String, String> parameters) 
             throws InterruptedException, ExecutionException {
-        return _externalSystemProcedure.invokeControlCommand(commandID, parameters);        
+        return _externalSystemProcedure.invokeControlCommand(commandID, parameters);
     }
     
     /**
@@ -304,5 +322,4 @@ public class IntegrationExecutive {
         cmds2[0] = new CommandDescriptor("reconnect", "Disconnects (if connected) from the process model and tries to connect.");
         return new AdapterValueObject(_processModel.getClass().getSimpleName(), cmds2);
     }
-
 }
