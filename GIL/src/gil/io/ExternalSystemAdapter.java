@@ -32,34 +32,93 @@ import gil.core.SystemStatus;
 
 
 /** 
- * The common interface to be implemented for every new type of external system to be integrated to the
+ * The common abstract class to be implemented for every new type of external system to be integrated to the
  * simulator process models.
  * <p>
  * The implementor of this interface does not have to take concurrency into consideration. Operations
- * on this interface must only be called from a single thread.
+ * on this interface must only be called from a single thread, except get properties that may be called from
+ * other threads.
  * <p>
  * @author Göran Larsson @ LearningWell AB
  */
-public interface IExternalSystemAdapter extends IControlCommandInvokeable {
-
+public abstract class ExternalSystemAdapter implements IControlCommandInvokeable {
     
     /**
-     * Returns a capabilities object specifying the features supported by this ES-adapter
+     * Tells whether or not this adapter supports power up and shut down of the external system.
      * <p>
-     * @return Returns a capabilities object specifying the features supported
-     * by this ES-adapter.
+     * If true the external system adapter must handle calls to {@link ExternalSystemAdapter#powerUp() } and
+     * {@link ExternalSystemAdapter#shutDown() }.
+     * @return
      */
-    ESAdapterCapabilities getCapabilities();
+    public abstract boolean canShutDownAndPowerUp();
+
+
+    /**
+     * Tells whether or not this adapter has its own clock or not.
+     * <p>
+     * True if the external system adapter expects calls to {@link ExternalSystemAdapter#timeStepControl()}
+     * at a frequency specified by {@link ExternalSystemAdapter#getOperatingFrequency()}.
+     * <p>
+     * The calls are expected to be synchronous to the process model operating frequency or a
+     * subdivided frequency thereof.
+     */
+    public abstract boolean isSynchronous();
+
+    /**
+     * Tells whether or not this adapter reports progress.
+     * <p>
+     * True if listeners may be added by calling
+     * {@link ExternalSystemAdapter#addProgressChangeListener(gil.common.IProgressEventListener)
+     * ExternalSystemAdapter.addProgressChangeListener()}.
+     * <p>
+     * Listeners shall receive progress info when actions are executed.
+     *
+     */
+    public abstract boolean reportsProgress();
+
+    /**
+     * Tells whether or not this adapter can supply status information.
+     * <p>
+     * True if calls to {@link ExternalSystemAdapter#getStatus()} returns the actual status of the external system
+     * other than NOT_AVAILABLE.
+     */
+    public abstract boolean canReportStatus();
+
+    /**
+     * Tells whether or not this adapter can supply state information.
+     * <p>
+     * True if calls to {@link ExternalSystemAdapter#getState()} returns the actual state of the external system
+     * other than NOT_AVAILABLE.
+     */
+    public abstract boolean canReportState();
+
+    /**
+     * Tells whether or not this adapter can handle simulator commands.
+     * <p>
+     * True if the adapter expects to receive simulator commands, such
+     * as run, freeze etc., from the process model. When true is returned {@link #executeSimCommand(gil.core.Command)}
+     * can be safely called.
+     */
+    public abstract boolean expectsSimulatorCommands();
+
+    /**
+     * Tells whether or not this adapter supplies process data event driven or by polling.
+     * <p>
+     * If false {@link  } process data can be retrieved by calling {@link #readSignalData(java.nio.ByteBuffer)}.
+     * When true is returned a listener shall be registered by calling
+     * {@link #addSignalDataEventListener(gil.io.ISignalDataListener).
+     */
+    public abstract  boolean isReadEventDriven();
+   
 
     /**
      * Starts the external system.
      * <p>
      * This method blocks until the external system has been started.
-     * If this method will be called or not depends on the settings in the capabilities object returned by
-     * {@link #getCapabilities() getCapabilities()}.
+     * May only be called if {@link #canShutDownAndPowerUp()} returns true.
      * @throws IOException If the power up fails. 
      */
-    void powerUp() throws IOException;
+    public abstract void powerUp() throws IOException;
 
 
     /**
@@ -67,11 +126,11 @@ public interface IExternalSystemAdapter extends IControlCommandInvokeable {
      * <p>
      * This method blocks until the external system has been stopped.
      * <p>
-     * If this method will be called or not depends on the settings in the capabilities object returned by
-     * {@link #getCapabilities() getCapabilities()}.
+     * May only be called if {@link #canShutDownAndPowerUp()} returns true.
      * @throws IOException If the power down fails. 
      */
-    void shutDown() throws IOException;
+    public abstract void shutDown() throws IOException;
+
 
     /**
      * Does the initial setup of the adapter.
@@ -83,20 +142,20 @@ public interface IExternalSystemAdapter extends IControlCommandInvokeable {
      * @param signalsToPM An array of signal metadata specifying the signal values to be transferred from the
      * external system to the process model.
      * @param config A collection of key-, value pairs holding configuration parameters specific to 
-     * each implementation of {@link IExternalSystemAdapter IExternalSystemAdapter}. Key-, value pairs are
+     * each implementation of {@link ExternalSystemAdapter ExternalSystemAdapter}. Key-, value pairs are
      * wrapped  in a {@link Parameters Parameters} class for convenience.
      * @throws IOException Is thrown to force the caller to an error state that must be handled by
      * manual intervention.
      * @throws InvalidParameterException Thrown if any parameter is illegal.
      */
-     void setup(SignalMetadata[] signalsToES, SignalMetadata[] signalsToPM, Parameters config) throws IOException, InvalidParameterException;
+     public abstract void setup(SignalMetadata[] signalsToES, SignalMetadata[] signalsToPM, Parameters config) throws IOException, InvalidParameterException;
 
      /**
       * Does the cleanup before close down.
       * <p>
       * Call this method before application is closed down. The method may be called multiple times.
       */
-     void tearDown();
+     public abstract void tearDown();
 
     /**
      * Connects to the external system.
@@ -109,7 +168,7 @@ public interface IExternalSystemAdapter extends IControlCommandInvokeable {
      * @throws IOException Is thrown to force the caller to an error state that must be handled by
      * manual intervention.
      */
-     boolean connect() throws IOException;
+     public abstract boolean connect() throws IOException;
     
 
     /**
@@ -117,14 +176,14 @@ public interface IExternalSystemAdapter extends IControlCommandInvokeable {
      * <p>
      * The call is just ignored if already disconnected.
      */
-    void disconnect();
+    public abstract void disconnect();
 
     /**
      * Writes process data.
      * <p>
      * Writes values, of the previously setup sequence of signals, to the external system.
      * @param values A buffer containing the sequence of signal values to be written to the external system.
-     * The number of signal values and their data type must correspond to the sequence of signal metadata given in
+     * The number of signal values and their data type must correspond to the sequence of signal meta data given in
      * a previous call to {@link #setup(gil.core.SignalMetadata[], gil.core.SignalMetadata[], gil.common.Parameters) setup()}.
      * @return A result object indicating success or failure. A failure will indicate to the caller that
      * this write was unsuccessful but subsequent writes may succeed. The caller will not retry to rewrite
@@ -133,38 +192,40 @@ public interface IExternalSystemAdapter extends IControlCommandInvokeable {
      * @throws IOException Thrown when there is a serious failure to force the caller to disconnect from the
      * external system and reconnect.
      */
-    Result writeSignalData(ByteBuffer values) throws IOException;
+    public abstract Result writeSignalData(ByteBuffer values) throws IOException;
 
     /**
      * Reads process data.
      * <p>
      * Reads values, of the previously setup sequence of signals, from the external system.
      * @param destBuf If data is available this buffer will be populated with signal values. The number of signal
-     * values and their data type must correspond to the sequence of signal metadata given in a previous call to
+     * values and their data type must correspond to the sequence of signal meta data given in a previous call to
      * {@link #setup(gil.core.SignalMetadata[], gil.core.SignalMetadata[], gil.common.Parameters) setup()}.
      * The given ByteBuffer has memory allocated just enough to contain the expected signal values. 
      * <p>
      * When this operation is called, the given ByteBuffer has a preset byte order (endianness). The caller
      * expects data to be added in that byte order. This has to be taken into consideration only if the byte array that
      * backs the ByteBuffer is accessed directly. Using put methods, i.e. putFloat, putInt, putShort etc. is safe.
+     * <p>
+     * This method may only be called if {@link #isReadEventDriven()} returns false.
      * @return Null or a result object indicating success or failure. When there is no data available null is returned.
      * A failure will indicate to the caller that this read was unsuccessful but subsequent reads may succeed.
      * An IOException shall be thrown for unrecoverable serious failures.
      * @throws IOException Thrown when there is a serious failure to force the caller to disconnect from the
      * external system and reconnect.
      */
-    Result readSignalData(ByteBuffer destBuf) throws IOException;
+    public abstract Result readSignalData(ByteBuffer destBuf) throws IOException;
 
     /**
      * Returns software info such as version info.
      * <p>
-     * Returns information about this implementation of the {@link IExternalSystemAdapter IExternalSystemAdapter}
+     * Returns information about this implementation of the {@link ExternalSystemAdapter ExternalSystemAdapter}
      * interface, the external system and possibly about connected subsystems. 
      * @return Returns the software info structure for the current implementation of this interface and connected
      * subsystems. Index 0 contains the software info structure for the implementation of this interface. If
      * available; subsequent indexes contains information about the external system and subsystems thereof.
      */
-    SoftwareInfo[] getInfo();
+    public abstract SoftwareInfo[] getInfo();
 
     /**
      * Returns the system status of the external system.
@@ -173,19 +234,17 @@ public interface IExternalSystemAdapter extends IControlCommandInvokeable {
      * It may not be possible to detect the current status of the external system and in that case
      * {@link SystemStatus SystemStatus.NOT_AVAILABLE} shall be returned.
      * <p>
-     * If this method will be called or not depends on the settings in the capabilities object returned by
-     * {@link #getCapabilities() getCapabilities()}.
+     * May only be called if {@link #canReportStatus()} returns true.
      * @return The current status of the external system.
      */
-    SystemStatus getStatus();
-
+    public abstract SystemStatus getStatus();
 
     /**
      * Returns the external system operating frequency in Hertz.
      * <p>
      * @return the external system operating frequency in Hertz.
      */
-    int getOperatingFrequency();
+    public abstract int getOperatingFrequency();
     
     /**
      * Returns the current operating state. e.g. run, freeze.
@@ -193,17 +252,16 @@ public interface IExternalSystemAdapter extends IControlCommandInvokeable {
      * States only has a meaning if the current status returned from {@link #getStatus() getStatus()} is OK.
      * Common states are defined in {@link SimState SimState}.
      * <p>
-     * If this method will be called or not depends on the settings in the capabilities object returned by
-     * {@link #getCapabilities() getCapabilities()}.
+     * May only be called if {@link #canReportState()} returns true.
      * @return The current state e.g. running, freeze.
      */
-    int getState();
+    public abstract int getState();
 
     /**
      * Executes simulator commands.
      * <p>
      * The possible commands and their parameters are implementation specific and is
-     * a contract between the current implementation of the {@link IExternalSystemAdapter IExternalSystemAdapter} and
+     * a contract between the current implementation of the {@link ExternalSystemAdapter ExternalSystemAdapter} and
      * the {@link IProcessModelAdapter IProcessModelAdapter}.
      * @param command The command to execute.
      * @return A result object indicating success or failure. A failure will indicate to the caller that
@@ -215,32 +273,42 @@ public interface IExternalSystemAdapter extends IControlCommandInvokeable {
      * @throws IllegalArgumentException Thrown when either the given command is not supported or the command parameters
      * are invalid.
      */
-    Result executeSimCommand(Command command) throws IllegalArgumentException, IOException;
+    public abstract Result executeSimCommand(Command command) throws IllegalArgumentException, IOException;
 
 
     /**
      * Adds a listener to receive progress change notifications.
      * <p>
-     * If this method will be called or not depends on the settings in the capabilities object returned by
-     * {@link #getCapabilities() getCapabilities()}.
-     * @param listener The listener that subscibes for notifications when progress changes. The listeners must
+     * May only be called if {@link #reportsProgress()} returns true.
+     * @param listener The listener that subscribes for notifications when progress changes. The listeners must
      * handle concurrency since they may be called from separate threads.
-     * @return true if the implemantation supports progress change notifications and the caller
+     * @return true if the implementation supports progress change notifications and the caller
      * can expect to receive notifications. Returns false when progress change notifications are not supported.
      */
-    boolean addProgressChangeListener(IProgressEventListener listener);
+    public abstract boolean addProgressChangeListener(IProgressEventListener listener);
+
+
+    /**
+     * Adds a listener to receive process data change notifications.
+     * <p>
+     * This method may only be called if
+     * {@link #isReadEventDriven()} returns true.
+     * @param listener The listener that subscribes for notifications when data changes. The listeners must
+     * handle concurrency since they may be called from separate threads.
+     */
+    public abstract void addSignalDataEventListener(ISignalDataListener listener);
 
     /**
      * Returns a list of control commands that can be invoked from client software.
      * <p>
-     * The implementation of the {@link IExternalSystemAdapter IExternalSystemAdapter} interface may support a set
+     * The implementation of the {@link ExternalSystemAdapter ExternalSystemAdapter} interface may support a set
      * of control commands that can be invoked to control the behavior of the adapter. This method lists the available
      * commands. Commands listed may be invoked by calling
      * {@link #invokeControlCommand(java.lang.String, java.lang.String)  invokeControlCommand}.
      * @return An array holding the specification for each available command. If no commands are available an array
      * containing zero elements is returned.
      */
-    CommandDescriptor[] availableControlCommands();
+    public abstract CommandDescriptor[] availableControlCommands();
 
     /**
      * Advances the external system one frame.
@@ -248,12 +316,11 @@ public interface IExternalSystemAdapter extends IControlCommandInvokeable {
      * This method will be called if the adapter is supposed to run synchronous to the process model.
      * The calls will be done at the frequency returned by {@link #getOperatingFrequency()}.
      * <p>
-     * If this method will be called or not depends on the settings in the capabilities object returned by
-     * {@link #getCapabilities() getCapabilities()}.
+     * May only be called if {@link #isSynchronous()} returns true.
      * @return A result object indicating success or failure. A failure indicates to the caller that the
      * time step call failed but subsequent time step calls may succeed. 
      * @throws IOException Thrown when there is a serious failure to force the caller to disconnect from the
      * external system and try to reconnect.
      */
-    Result timeStepControl() throws IOException;
+    public abstract Result timeStepControl() throws IOException;
 }

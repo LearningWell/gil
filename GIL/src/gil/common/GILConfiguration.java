@@ -21,7 +21,7 @@ package gil.common;
 import java.io.File;
 import java.nio.ByteOrder;
 import javax.xml.xpath.XPathExpressionException;
-import gil.io.IExternalSystemAdapter;
+import gil.io.ExternalSystemAdapter;
 import gil.io.IProcessModelAdapter;
 
 /**
@@ -53,7 +53,7 @@ public class GILConfiguration {
         _config = config;
         
         try {
-            _esAdapterClassName = parseAdapterClass(getParameter(PARAM_ES_ADAPTER), IExternalSystemAdapter.class);
+            _esAdapterClassName = parseAdapterClass(getParameter(PARAM_ES_ADAPTER), ExternalSystemAdapter.class);
             _pmAdapterClassName = parseAdapterClass(getParameter(PARAM_PM_ADAPTER), IProcessModelAdapter.class);
             
             if (!new File(getParameter(PARAM_SEL_PATH)).exists()) {

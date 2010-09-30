@@ -18,6 +18,7 @@
 */
 package gil.io.example;
 
+import gil.io.ISignalDataListener;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -33,18 +34,17 @@ import gil.core.SoftwareInfo;
 import gil.core.SignalMetadata;
 import gil.core.SimState;
 import gil.core.SystemStatus;
-import gil.io.ESAdapterCapabilities;
-import gil.io.IExternalSystemAdapter;
+import gil.io.ExternalSystemAdapter;
 import gil.common.IProgressEventListener;
 import gil.common.ProgressChangedEventArgs;
 import gil.common.Result;
 
 /**
- * This class exemplifies the implementation of the IExternalSystemAdapter interface. It works in pair with the
- * ExamplePMAdapter. Please see IExternalSystemAdapter.java for implementation details.
+ * This class exemplifies the implementation of the ExternalSystemAdapter interface. It works in pair with the
+ * ExamplePMAdapter. Please see ExternalSystemAdapter.java for implementation details.
  * @author Göran Larsson @ LearningWell AB
  */
-public class ExampleESAdapter implements IExternalSystemAdapter {
+public class ExampleESAdapter extends ExternalSystemAdapter {
 
     private ArrayList<IProgressEventListener> _progressListeners = new ArrayList<IProgressEventListener>();
 
@@ -228,18 +228,51 @@ public class ExampleESAdapter implements IExternalSystemAdapter {
         }
     }
 
-    public ESAdapterCapabilities getCapabilities() {                       
-        ESAdapterCapabilities capabilities = new ESAdapterCapabilities();
-        capabilities.canShutDownAndPowerUp = false;
-
-        return capabilities;
-    }
-
     public void powerUp() throws IOException, UnsupportedOperationException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     public void shutDown() throws IOException {
         throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public boolean canShutDownAndPowerUp() {
+        return false;
+    }
+
+    @Override
+    public boolean isSynchronous() {
+        return true;
+    }
+
+    @Override
+    public boolean reportsProgress() {
+        return true;
+    }
+
+    @Override
+    public boolean canReportStatus() {
+        return true;
+    }
+
+    @Override
+    public boolean canReportState() {
+        return true;
+    }
+
+    @Override
+    public boolean expectsSimulatorCommands() {
+        return true;
+    }
+
+    @Override
+    public boolean isReadEventDriven() {
+        return false;
+    }
+
+    @Override
+    public void addSignalDataEventListener(ISignalDataListener listener) {
+        throw new UnsupportedOperationException("Not supported.");
     }
 }

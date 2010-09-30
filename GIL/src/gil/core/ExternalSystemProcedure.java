@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import org.apache.log4j.Logger;
 import gil.common.AsyncResult;
-import gil.io.IExternalSystemAdapter;
+import gil.io.ExternalSystemAdapter;
 import gil.common.GILConfiguration;
 import gil.common.IInvokeable;
 import gil.common.Invoker;
@@ -50,7 +50,7 @@ public class ExternalSystemProcedure  implements IProcedure {
 
     private final int _valuesBufSize;
     private final IntegrationContext _context;
-    private final IExternalSystemAdapter _esAdapter;
+    private final ExternalSystemAdapter _esAdapter;
     private final Timeout _readTimeout;
     private final GILConfiguration _config;
     Invoker _controlCommandInvoker = new Invoker();
@@ -71,7 +71,7 @@ public class ExternalSystemProcedure  implements IProcedure {
      * @param valuesBufSize The number of bytes that must be allocated for signal values read from the external system.
      * @param config Object containing configuration parameters that may be used by this object.
      */
-    public ExternalSystemProcedure(IExternalSystemAdapter esAdapter, IntegrationContext context, int valuesBufSize, GILConfiguration config) {
+    public ExternalSystemProcedure(ExternalSystemAdapter esAdapter, IntegrationContext context, int valuesBufSize, GILConfiguration config) {
         _esAdapter = esAdapter;
         _context = context;
         _config = config;
@@ -92,7 +92,7 @@ public class ExternalSystemProcedure  implements IProcedure {
     }
 
     public int getExternalSystemState() {
-        if (!_esAdapter.getCapabilities().canReportState)
+        if (!_esAdapter.canReportState())
             return SimState.NOT_AVAILABLE;
         if (_currentState instanceof ConnectedState)
             return _esAdapter.getState();
@@ -100,7 +100,7 @@ public class ExternalSystemProcedure  implements IProcedure {
     }
 
     public SystemStatus getExternalSystemStatus() {
-        if (!_esAdapter.getCapabilities().canReportStatus)
+        if (!_esAdapter.canReportStatus())
             return new SystemStatus(SystemStatus.NOT_AVAILABLE, "The adapter does not support status reporting.");
         if (_currentState instanceof ConnectedState)
             return _esAdapter.getStatus();
@@ -168,7 +168,7 @@ public class ExternalSystemProcedure  implements IProcedure {
     public class ConnectedState implements IState {
         public IState handle(long currentTimeInMilliseconds)  {
             try {
-                if (_esAdapter.getCapabilities().isSynchronous) {
+                if (_esAdapter.isSynchronous()) {
                     long newFrameCount = _context.esFrameCount;
                     for (long i = _frameCount; i < newFrameCount; i++) {
                         Result result = _esAdapter.timeStepControl();
@@ -216,7 +216,7 @@ public class ExternalSystemProcedure  implements IProcedure {
                 synchronized(_context) {
                     nextCommand = _context.pendingSimCommands.poll();
                 }
-                if (_esAdapter.getCapabilities().expectsSimulatorCommands) {
+                if (_esAdapter.expectsSimulatorCommands()) {
                     if (nextCommand != null) {
                         _logger.debug("Executing command: " + nextCommand.getID());
                         Result cmdResult = _esAdapter.executeSimCommand(nextCommand);

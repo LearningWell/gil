@@ -26,9 +26,8 @@ import java.util.HashMap;
 import gil.core.*;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import gil.io.IExternalSystemAdapter;
+import gil.io.ExternalSystemAdapter;
 import gil.common.GILConfiguration;
-import gil.io.ESAdapterCapabilities;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -46,7 +45,7 @@ public class ExternalSystemProcedureTest {
         when(config.getPMAdapterByteOrder()).thenReturn(ByteOrder.BIG_ENDIAN);
     }
     
-    IExternalSystemAdapter _esAdapterMock = mock(IExternalSystemAdapter.class);
+    ExternalSystemAdapter _esAdapterMock = mock(ExternalSystemAdapter.class);
     ExternalSystemProcedure _procedure = new ExternalSystemProcedure(_esAdapterMock, context, BUF_SIZE, config);
 
     ////////////////////////////////////////////////////////////////////////////////////////
@@ -79,7 +78,13 @@ public class ExternalSystemProcedureTest {
 
     @Test
     public void expect_es_state_and_status_to_change_depending_on_current_state_of_the_procedure() throws Exception {        
-        when(_esAdapterMock.getCapabilities()).thenReturn(new ESAdapterCapabilities());
+        when(_esAdapterMock.canReportState()).thenReturn(true);
+        when(_esAdapterMock.canReportStatus()).thenReturn(true);
+        when(_esAdapterMock.canShutDownAndPowerUp()).thenReturn(true);
+        when(_esAdapterMock.expectsSimulatorCommands()).thenReturn(true);
+        when(_esAdapterMock.isReadEventDriven()).thenReturn(false);
+        when(_esAdapterMock.isSynchronous()).thenReturn(true);
+
         when(_esAdapterMock.getStatus()).thenReturn(new SystemStatus(SystemStatus.OK, "its OK"));
         when(_esAdapterMock.getState()).thenReturn(SimState.SLOW);
         when(_esAdapterMock.connect()).thenReturn(true);
@@ -405,11 +410,9 @@ public class ExternalSystemProcedureTest {
     ////////////////////////////////////////////////////////////////////////////////////////
     @Test
     public void expect_timeStepControl_NOT_to_be_called_when_capability_isSynchronous_is_set_to_false() throws Exception {
-
-       ESAdapterCapabilities cap = new ESAdapterCapabilities();
-        cap.isSynchronous = false;
-        _doFirstRunOnceCallToConnect(cap);
-
+              
+        _doFirstRunOnceCallToConnect();
+        when(_esAdapterMock.isSynchronous()).thenReturn(false);
         when(_esAdapterMock.timeStepControl()).thenReturn(new Result(true));
 
         context.esFrameCount = 4;
@@ -420,28 +423,24 @@ public class ExternalSystemProcedureTest {
 
     @Test
     public void expect_es_state_to_be_NA_when_capability_canReportState_is_set_to_false() throws Exception {
-       ESAdapterCapabilities cap = new ESAdapterCapabilities();
-        cap.canReportState = false;
-        _doFirstRunOnceCallToConnect(cap);
+        _doFirstRunOnceCallToConnect();
+        when(_esAdapterMock.canReportState()).thenReturn(false);
 
         assertEquals(SimState.NOT_AVAILABLE, _procedure.getExternalSystemState());
     }
 
     @Test
     public void expect_es_state_to_be_NA_when_capability_canReportStatus_is_set_to_false() throws Exception {
-        ESAdapterCapabilities cap = new ESAdapterCapabilities();
-        cap.canReportStatus = false;
-        _doFirstRunOnceCallToConnect(cap);
+        _doFirstRunOnceCallToConnect();
+        when(_esAdapterMock.canReportStatus()).thenReturn(false);
 
         assertEquals(SystemStatus.NOT_AVAILABLE, _procedure.getExternalSystemStatus().getStatusCode());
     }
 
     @Test
     public void do_not_expect_simulator_commands_to_be_executed_when_capability_expectsSimulatorCommands_is_set_to_false() throws Exception {
-        ESAdapterCapabilities cap = new ESAdapterCapabilities();
-        cap.expectsSimulatorCommands = false;
-
-        _doFirstRunOnceCallToConnect(cap);
+        _doFirstRunOnceCallToConnect();
+        when(_esAdapterMock.expectsSimulatorCommands()).thenReturn(false);
         context.pendingSimCommands.add(new Command("FREEZE"));
 
         when(_esAdapterMock.executeSimCommand((Command)any())).thenReturn(new Result(true));
@@ -457,8 +456,7 @@ public class ExternalSystemProcedureTest {
     ////////////////////////////////////////////////////////////////////////////////////////
     @Test
     public void expect_controlCommands_to_be_invoked_on_ESAdapter() throws Exception {
-
-        _doFirstRunOnceCallToConnect(new ESAdapterCapabilities());
+        _doFirstRunOnceCallToConnect();
 
         when(_esAdapterMock.timeStepControl()).thenReturn(new Result(true));
 
@@ -479,17 +477,18 @@ public class ExternalSystemProcedureTest {
     }
 
     private void _doFirstRunOnceCallToConnect() throws Exception {
-        ESAdapterCapabilities cap = new ESAdapterCapabilities();
-        _doFirstRunOnceCallToConnect(cap);
-        _procedure.runOnce(0);
-    }
-
-    private void _doFirstRunOnceCallToConnect(ESAdapterCapabilities cap) throws Exception {
         when(_esAdapterMock.connect()).thenReturn(true);
         when(_esAdapterMock.getStatus()).thenReturn(new SystemStatus(SystemStatus.OK, "its OK"));
         when(_esAdapterMock.getState()).thenReturn(SimState.FREEZE);
         when(_esAdapterMock.readSignalData((ByteBuffer)any())).thenReturn(null);
-        when(_esAdapterMock.getCapabilities()).thenReturn(cap);
+
+        when(_esAdapterMock.canReportState()).thenReturn(true);
+        when(_esAdapterMock.canReportStatus()).thenReturn(true);
+        when(_esAdapterMock.canShutDownAndPowerUp()).thenReturn(true);
+        when(_esAdapterMock.expectsSimulatorCommands()).thenReturn(true);
+        when(_esAdapterMock.isReadEventDriven()).thenReturn(false);
+        when(_esAdapterMock.isSynchronous()).thenReturn(true);
+
         when(_esAdapterMock.connect()).thenReturn(true);
         _procedure.runOnce(0);
     }

@@ -114,7 +114,7 @@ public class GIL implements IGIL {
             String className = gconfig.getESAdapterClassName();
             _logger.info("Creating external system adapter: " + className);
             Class cl = Class.forName(className);
-            IExternalSystemAdapter es = (IExternalSystemAdapter)cl.newInstance();
+            ExternalSystemAdapter es = (ExternalSystemAdapter)cl.newInstance();
             es.setup(SignalMetadata.getSignalsToExternalSystem(smd), SignalMetadata.getSignalsToProcessModel(smd),
                     getAdapterSettings(config, className));
 

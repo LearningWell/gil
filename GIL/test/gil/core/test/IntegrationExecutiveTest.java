@@ -35,12 +35,11 @@ import gil.core.SignalMetadata;
 import gil.core.StageValueObject;
 import gil.core.SimState;
 import gil.core.SystemStatus;
-import gil.io.IExternalSystemAdapter;
+import gil.io.ExternalSystemAdapter;
 import gil.io.IProcessModelAdapter;
 import gil.common.IProgressEventListener;
 import gil.common.GILConfiguration;
 import gil.core.AdapterValueObject;
-import gil.io.ESAdapterCapabilities;
 import static org.mockito.Mockito.*;
 
 public class IntegrationExecutiveTest {
@@ -48,7 +47,7 @@ public class IntegrationExecutiveTest {
     static GILConfiguration config = mock(GILConfiguration.class);
 
     IProcessModelAdapter _pmAdapter = mock(IProcessModelAdapter.class);
-    IExternalSystemAdapter _esAdapter = mock(IExternalSystemAdapter.class);
+    ExternalSystemAdapter _esAdapter = mock(ExternalSystemAdapter.class);
     ITransferPipeline _pipeline = mock(ITransferPipeline.class);
     IPipelineStage _stage = mock(IPipelineStage.class);
 
@@ -71,7 +70,12 @@ public class IntegrationExecutiveTest {
         when(_esAdapter.getState()).thenReturn(SimState.UNKNOWN);
         when(_esAdapter.getStatus()).thenReturn(new SystemStatus(SystemStatus.UNKNOWN,""));
         when(_esAdapter.addProgressChangeListener(any(IProgressEventListener.class))).thenReturn(false);
-        when(_esAdapter.getCapabilities()).thenReturn(new ESAdapterCapabilities());
+        when(_esAdapter.canReportState()).thenReturn(true);
+        when(_esAdapter.canReportStatus()).thenReturn(true);
+        when(_esAdapter.canShutDownAndPowerUp()).thenReturn(true);
+        when(_esAdapter.expectsSimulatorCommands()).thenReturn(true);
+        when(_esAdapter.isReadEventDriven()).thenReturn(false);
+        when(_esAdapter.isSynchronous()).thenReturn(true);
         when(_pmAdapter.getState()).thenReturn(SimState.UNKNOWN);
         when(_pmAdapter.getStatus()).thenReturn(new SystemStatus(SystemStatus.UNKNOWN,""));
         when(_pmAdapter.addProgressChangeListener(any(IProgressEventListener.class))).thenReturn(false);

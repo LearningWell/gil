@@ -55,7 +55,7 @@ public class IntegrationExecutive {
 
     private Thread _externalSystemThread;
     private Thread _processModelThread;
-    private IExternalSystemAdapter _externalSystem;
+    private ExternalSystemAdapter _externalSystem;
     private IProcessModelAdapter _processModel;
     private ExternalSystemProcedure _externalSystemProcedure;
     private ProcessModelProcedure _processModelProcedure;
@@ -73,7 +73,7 @@ public class IntegrationExecutive {
      * to the process model. The transfer pipeline used to transform and monitor data flowing between the external
      * system and the process model.
      */
-    public IntegrationExecutive(IProcessModelAdapter pm, IExternalSystemAdapter es, ITransferPipeline pipe,
+    public IntegrationExecutive(IProcessModelAdapter pm, ExternalSystemAdapter es, ITransferPipeline pipe,
             SignalMetadata[] smd, GILConfiguration config) {
         _externalSystem = es;
         _processModel = pm;
@@ -90,7 +90,7 @@ public class IntegrationExecutive {
         _processModelStatus = _processModel.getStatus();
         _pipeline = pipe;
 
-        if (_externalSystem.getCapabilities().reportsProgress) {
+        if (_externalSystem.reportsProgress()) {
             _externalSystem.addProgressChangeListener(new IProgressEventListener() {
                 public void progressChanged(ProgressChangedEventArgs args) {
                     _currentESActivity = args;
