@@ -152,7 +152,7 @@ public class ProcessModelProcedure  {
         AsyncResult result = _controlCommandInvoker.schedule(new IInvokeable() {
 
             public Object invoke() throws Exception {
-                Command cmd = new Command(commandID, parameters);
+                Command cmd = new Command(commandID, parameters, new SimTime());
                 try {
                     return theExecutor.invokeControlCommand(cmd);
                 } catch (Exception ex) {
@@ -259,7 +259,7 @@ public class ProcessModelProcedure  {
         }
 
         private void writeProcessDataToProcessModel() throws IOException {
-            ByteBuffer valuesToPM;
+            Data valuesToPM;
             synchronized (_context) {
                 valuesToPM = _context.pendingTransferToPM.pollLast();
                 _context.pendingTransferToPM.clear();
@@ -267,10 +267,10 @@ public class ProcessModelProcedure  {
 
             if (valuesToPM != null) {
                 _logger.debug("Processing signals transferred to PM");
-                _pipeline.processSignals(valuesToPM, DataflowDirection.ToPM);
+                _pipeline.processSignals(valuesToPM.getData(), DataflowDirection.ToPM);
                 _logger.debug("Done processing signals transferred to PM");
 
-                Result result = _pmAdapter.writeSignalData(valuesToPM);
+                Result result = _pmAdapter.writeSignalData(valuesToPM.getData(), valuesToPM.getOrigin());
                 if (result.isSuccess()) {
                     ++_writeFrameCount;
                 } else {
@@ -286,7 +286,7 @@ public class ProcessModelProcedure  {
             ByteBuffer valuesBuf = ByteBuffer.allocateDirect(_valuesBufSize);            
             valuesBuf.order(_config.getPMAdapterByteOrder());
 
-            Result result = _pmAdapter.readSignalData(valuesBuf);
+            ValueResult<SimTime> result = _pmAdapter.readSignalData(valuesBuf);
             if (result.isSuccess()) {
                 synchronized (_context) {
                     _logger.debug("Processing signals transferred to ES");
@@ -299,7 +299,7 @@ public class ProcessModelProcedure  {
                         _context.pendingTransferToES.clear();
                     }
                     ++_readFrameCount;
-                    _context.pendingTransferToES.add(valuesBuf);
+                    _context.pendingTransferToES.add(new Data(valuesBuf, result.getReturnValue()));
                 }
             } else {
                 _logger.warn("Failure reading signals: " + result.getErrorDescription());

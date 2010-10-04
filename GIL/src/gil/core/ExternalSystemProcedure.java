@@ -25,12 +25,14 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import org.apache.log4j.Logger;
 import gil.common.AsyncResult;
+import gil.common.CurrentTime;
 import gil.io.ExternalSystemAdapter;
 import gil.common.GILConfiguration;
 import gil.common.IInvokeable;
 import gil.common.Invoker;
 import gil.common.Result;
 import gil.common.Timeout;
+import gil.common.ValueResult;
 
 /**
  * This is the logic separated from the controlling thread to handle the communication with the external system.
@@ -126,7 +128,7 @@ public class ExternalSystemProcedure  implements IProcedure {
         else {
             AsyncResult result = _controlCommandInvoker.schedule(new IInvokeable() {
                 public Object invoke() throws Exception {
-                    Command cmd = new Command(commandID, parameters);
+                    Command cmd = new Command(commandID, parameters, new SimTime());
                     try {
                         return _esAdapter.invokeControlCommand(cmd);
                     } catch(Exception ex) {
@@ -188,7 +190,7 @@ public class ExternalSystemProcedure  implements IProcedure {
 
                 if (_readTimeout.isTimeout(currentTimeInMilliseconds)) {
                     _readTimeout.reset(currentTimeInMilliseconds);
-                    Result result = _esAdapter.readSignalData(_valuesBuf);
+                    ValueResult<SimTime> result = _esAdapter.readSignalData(_valuesBuf);
                     if (result != null) {
                         if (result.isSuccess()) {
                             _valuesBuf.rewind();
@@ -198,7 +200,7 @@ public class ExternalSystemProcedure  implements IProcedure {
                                     _logger.warn(String.format("Dropped %d ES-frame(s) due to still pending transfers.", _context.pendingTransferToPM.size()));
                                     _context.pendingTransferToPM.clear();
                                 }
-                                _context.pendingTransferToPM.add(_valuesBuf);
+                                _context.pendingTransferToPM.add(new Data(_valuesBuf, result.getReturnValue()));
                             }
                             ++_readFrameCount;
                         }
@@ -229,13 +231,13 @@ public class ExternalSystemProcedure  implements IProcedure {
                         }
                     }
                 }
-                ByteBuffer values;
+                Data values;
                 synchronized(_context) {
                     values = _context.pendingTransferToES.pollLast();
                     _context.pendingTransferToES.clear();
                 }
                 if (values != null) {
-                    _transferSignalDataES(values);
+                    transferSignalDataES(values);
                 }
             } catch(IOException ex) {
                 _logger.error("Failure in communication with external system. ", ex);
@@ -249,8 +251,8 @@ public class ExternalSystemProcedure  implements IProcedure {
             return this;
         }
 
-        private void _transferSignalDataES(ByteBuffer values) throws IOException {
-            Result result = _esAdapter.writeSignalData(values);
+        private void transferSignalDataES(Data values) throws IOException {
+            Result result = _esAdapter.writeSignalData(values.getData(), values.getOrigin());
             if (result.isSuccess()) {
                 ++_writeFrameCount;
             } else {

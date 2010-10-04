@@ -22,27 +22,29 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * A object carrying the data neccessary to invoke a command.
+ * A object carrying the data necessary to invoke a command.
  * @author Göran Larsson @ LearningWell AB
  */
 public class Command {
 
     private final String _id;
     private final Map<String, String> _parameters;
+    private final SimTime _origin;
 
     /**
      * Constructs a command with a unique string identifying the command and a collection of parameters as key-value pairs.
      */
-    public Command(String id, Map<String, String> parameters) {
+    public Command(String id, Map<String, String> parameters, SimTime origin) {
         _id = id;
         _parameters = parameters;
+        _origin = origin;
     }
 
     /**
      * Constructs a command with a unique string identifying the command. The command will have no parameters.
      */
-    public Command(String command) {
-        this(command, new HashMap<String, String>());
+    public Command(String command, SimTime origin) {
+        this(command, new HashMap<String, String>(), origin);
     }    
 
     /**
@@ -68,6 +70,14 @@ public class Command {
      */
     public Map<String, String> getParameters() {
         return _parameters;
+    }
+
+    /**
+     * Returns time/date from when this command originates.
+     * @return A string identifying the actual command.
+     */
+    public SimTime getOrigin() {
+        return _origin;
     }
 
     /**
@@ -106,7 +116,7 @@ public class Command {
      */
     @Override
     public String toString() {
-        return String.format("id=%s parameters=%s", _id, _parameters);
+        return String.format("%s id=%s parameters=%s", _origin, _id, _parameters);
     }
 
     /**

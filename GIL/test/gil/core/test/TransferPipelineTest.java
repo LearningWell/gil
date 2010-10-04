@@ -41,10 +41,10 @@ public class TransferPipelineTest {
         HashMap<String, String> params = new HashMap<String, String>();
         params.put("param1", "20");
 
-        add.invokeControlCommand(new Command("OFFSET", params));
+        add.invokeControlCommand(new Command("OFFSET", params, null));
         params.clear();
         params.put("param1", "100");
-        mul.invokeControlCommand(new Command("FACTOR", params));
+        mul.invokeControlCommand(new Command("FACTOR", params, null));
                 
         stages.add(add);
         stages.add(mul);

@@ -164,7 +164,7 @@ public class IntegrationExecutiveTest {
         HashMap<String, String> params = new HashMap<String, String>() {{
             put("param1", "abc");
         }};
-        verify(_stage).invokeControlCommand(new Command("cmd2", params));
+        verify(_stage).invokeControlCommand(new Command("cmd2", params, null));
     }
 
     @Test

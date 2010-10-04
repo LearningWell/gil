@@ -64,7 +64,7 @@ public class ProcessModelProcedureTest {
     @Test
     public void expect_established_connection_to_process_model_after_first_call_to_runOnce() throws Exception {
 
-        context.pendingTransferToPM.add(ByteBuffer.allocate(100));
+        context.pendingTransferToPM.add(new Data(ByteBuffer.allocate(100)));
 
         when(_pmAdapterMock.connect()).thenReturn(true);
         when(_pmAdapterMock.getSimTime()).thenReturn(new ValueResult<SimTime>(new SimTime(2009, 1, 1, 1, 1, 1, 50)));
@@ -76,7 +76,7 @@ public class ProcessModelProcedureTest {
     @Test
     public void expect_added_pending_transfer_at_first_call_to_runOnce_after_connection_is_established() throws Exception {
 
-        context.pendingTransferToPM.add(ByteBuffer.allocate(100));
+        context.pendingTransferToPM.add(new Data(ByteBuffer.allocate(100)));
 
         setupPMAdapterStub();
         _procedure.runOnce(0); // Will get connected
@@ -121,7 +121,7 @@ public class ProcessModelProcedureTest {
         when(_pmAdapterMock.getState()).thenReturn(SimState.SLOW);
         when(_pmAdapterMock.getSimTime()).thenReturn(new ValueResult<SimTime>(new SimTime(2009, 1, 1, 1, 1, 1, 0)));
         when(_pmAdapterMock.connect()).thenReturn(true);
-        when(_pmAdapterMock.readSignalData((ByteBuffer)any())).thenReturn(new Result(true));
+        when(_pmAdapterMock.readSignalData((ByteBuffer)any())).thenReturn(new ValueResult<SimTime>((SimTime)null));
         when(_pmAdapterMock.readSimCommands()).thenReturn(new ValueResult<Command[]>(new Command[0]));
 
         // Expect unknown state and status when adapter is disconnected
@@ -210,8 +210,8 @@ public class ProcessModelProcedureTest {
 
         doFirstRunOnceCallToConnect();
 
-        final Command sc0 = new Command("FREEZE");
-        final Command sc1 = new Command("LOAD_IC");
+        final Command sc0 = new Command("FREEZE", null);
+        final Command sc1 = new Command("LOAD_IC", null);
         when(_pmAdapterMock.getSimTime()).thenReturn(new ValueResult<SimTime>(new SimTime(2009, 1, 1, 1, 1, 1, 0)));
         when(_pmAdapterMock.readSimCommands()).thenReturn(new ValueResult<Command[]>(new Command[] { sc0, sc1 }));
 
@@ -260,14 +260,14 @@ public class ProcessModelProcedureTest {
         doFirstRunOnceCallToConnect();
 
         when(_pmAdapterMock.getSimTime()).thenReturn(new ValueResult<SimTime>(new SimTime(2009, 1, 1, 1, 1, 1, 100)));
-        when(_pmAdapterMock.readSignalData(any(ByteBuffer.class))).thenReturn(new Result(true));
+        when(_pmAdapterMock.readSignalData(any(ByteBuffer.class))).thenReturn(new ValueResult<SimTime>((SimTime)null));
 
         // Second runOnce() call will detect a frame change in process model and retrieve process data
         // to be stored as pending data transfers in context object
         _procedure.runOnce(0);        
 
         assertEquals(1, context.pendingTransferToES.size());
-        ByteBuffer values = context.pendingTransferToES.pollFirst();
+        ByteBuffer values = context.pendingTransferToES.pollFirst().getData();
         verify(_pmAdapterMock).readSignalData(same(values));
         assertEquals(2, _procedure.getStatistics().dataReadCount);
     }
@@ -277,11 +277,11 @@ public class ProcessModelProcedureTest {
         doFirstRunOnceCallToConnect();
 
         when(_pmAdapterMock.getSimTime()).thenReturn(new ValueResult<SimTime>(new SimTime(2009, 1, 1, 1, 1, 1, 100)));
-        when(_pmAdapterMock.readSignalData(any(ByteBuffer.class))).thenReturn(new Result(true));
+        when(_pmAdapterMock.readSignalData(any(ByteBuffer.class))).thenReturn(new ValueResult<SimTime>((SimTime)null));
 
         _procedure.runOnce(0); // data transfer through pipeline
 
-        ByteBuffer values = context.pendingTransferToES.pollFirst();
+        ByteBuffer values = context.pendingTransferToES.pollFirst().getData();
         verify(_pipeline).processSignals(same(values), eq(DataflowDirection.ToES));
     }
 
@@ -305,7 +305,7 @@ public class ProcessModelProcedureTest {
         doFirstRunOnceCallToConnect();
 
         when(_pmAdapterMock.getSimTime()).thenReturn(new ValueResult<SimTime>(new SimTime(2009, 1, 1, 1, 1, 1, 100)));
-        when(_pmAdapterMock.readSignalData(any(ByteBuffer.class))).thenReturn(new Result(false, "a failure"));
+        when(_pmAdapterMock.readSignalData(any(ByteBuffer.class))).thenReturn(new ValueResult<SimTime>("a failure"));
 
         // Second runOnce() call will detect a frame change in process model and retrieve process data
         // to be stored as pending data transfers in context object
@@ -352,7 +352,7 @@ public class ProcessModelProcedureTest {
         verify(_pmAdapterMock, times(1)).readSignalData(any(ByteBuffer.class));
 
         assertEquals(1, context.pendingTransferToES.size());
-        ByteBuffer values = context.pendingTransferToES.pollFirst();
+        ByteBuffer values = context.pendingTransferToES.pollFirst().getData();
         verify(_pmAdapterMock, times(1)).readSignalData(same(values));
         assertEquals(2, _procedure.getStatistics().dataReadCount);
     }
@@ -390,7 +390,7 @@ public class ProcessModelProcedureTest {
 
         when(_pmAdapterMock.connect()).thenReturn(true);
         when(_pmAdapterMock.getSimTime()).thenReturn(new ValueResult<SimTime>(new SimTime(2009, 1, 1, 1, 1, 1, 0)));
-        when(_pmAdapterMock.readSignalData((ByteBuffer)any())).thenReturn(new Result(true));
+        when(_pmAdapterMock.readSignalData((ByteBuffer)any())).thenReturn(new ValueResult<SimTime>((SimTime)null));
         when(_pmAdapterMock.readSimCommands()).thenReturn(new ValueResult<Command[]>(new Command[0]));
 
         pm.runOnce(0);
@@ -408,7 +408,7 @@ public class ProcessModelProcedureTest {
         doFirstRunOnceCallToConnect();
 
         when(_pmAdapterMock.getSimTime()).thenReturn(new ValueResult<SimTime>(new SimTime(2009, 1, 1, 1, 1, 1, 300)));
-        when(_pmAdapterMock.readSignalData((ByteBuffer)any())).thenReturn(new Result(true));
+        when(_pmAdapterMock.readSignalData((ByteBuffer)any())).thenReturn(new ValueResult<SimTime>((SimTime)null));
 
         _procedure.runOnce(0);
 
@@ -430,11 +430,12 @@ public class ProcessModelProcedureTest {
     public void expect_pending_ES_data_to_be_written_to_PM() throws Exception {
         ByteBuffer buf = ByteBuffer.allocate(BUF_SIZE);
         doFirstRunOnceCallToConnect();
+        final SimTime time = new SimTime();
 
-        context.pendingTransferToPM.add(buf);
+        context.pendingTransferToPM.add(new Data(buf, time));
         _procedure.runOnce(0);
 
-        verify(_pmAdapterMock).writeSignalData(same(buf));
+        verify(_pmAdapterMock).writeSignalData(same(buf), same(time));
         assertEquals(0, _procedure.getStatistics().dataWriteFailureCount);
         assertEquals(0, context.pendingTransferToPM.size());
     }
@@ -444,9 +445,9 @@ public class ProcessModelProcedureTest {
         ByteBuffer buf = ByteBuffer.allocate(BUF_SIZE);
         doFirstRunOnceCallToConnect();
 
-        when(_pmAdapterMock.writeSignalData(same(buf))).thenReturn(new Result(true));
+        when(_pmAdapterMock.writeSignalData(same(buf), any(SimTime.class))).thenReturn(new Result(true));
 
-        context.pendingTransferToPM.add(buf);
+        context.pendingTransferToPM.add(new Data(buf));
         _procedure.runOnce(0); // data transfer through pipeline
 
         verify(_pipeline).processSignals(same(buf), eq(DataflowDirection.ToPM));
@@ -457,9 +458,9 @@ public class ProcessModelProcedureTest {
         ByteBuffer buf = ByteBuffer.allocate(BUF_SIZE);
         doFirstRunOnceCallToConnect();
 
-        when(_pmAdapterMock.writeSignalData(same(buf))).thenReturn(new Result(false));
+        when(_pmAdapterMock.writeSignalData(same(buf), any(SimTime.class))).thenReturn(new Result(false));
 
-        context.pendingTransferToPM.add(buf);
+        context.pendingTransferToPM.add(new Data(buf));
         _procedure.runOnce(0);
 
         assertEquals(1, _procedure.getStatistics().dataWriteFailureCount);
@@ -471,9 +472,9 @@ public class ProcessModelProcedureTest {
         ByteBuffer buf = ByteBuffer.allocate(BUF_SIZE);
         doFirstRunOnceCallToConnect();
         
-        when(_pmAdapterMock.writeSignalData(same(buf))).thenThrow(new IOException());       
+        when(_pmAdapterMock.writeSignalData(same(buf), any(SimTime.class))).thenThrow(new IOException());
 
-        context.pendingTransferToPM.add(buf);
+        context.pendingTransferToPM.add(new Data(buf));
         _procedure.runOnce(0);
 
         verify(_pmAdapterMock).disconnect();
@@ -574,8 +575,8 @@ public class ProcessModelProcedureTest {
         when(_pmAdapterMock.getStatus()).thenReturn(new SystemStatus(SystemStatus.OK, "its OK"));
         when(_pmAdapterMock.getState()).thenReturn(SimState.FREEZE);
         when(_pmAdapterMock.getSimTime()).thenReturn(new ValueResult<SimTime>(new SimTime(2009, 1, 1, 1, 1, 1, 0)));
-        when(_pmAdapterMock.readSignalData((ByteBuffer) any())).thenReturn(new Result(true));
-        when(_pmAdapterMock.writeSignalData(any(ByteBuffer.class))).thenReturn(new Result(true));
+        when(_pmAdapterMock.readSignalData((ByteBuffer) any())).thenReturn(new ValueResult<SimTime>((SimTime)null));
+        when(_pmAdapterMock.writeSignalData(any(ByteBuffer.class), any(SimTime.class))).thenReturn(new Result(true));
         when(_pmAdapterMock.readSimCommands()).thenReturn(new ValueResult<Command[]>(new Command[0]));
     }
  }

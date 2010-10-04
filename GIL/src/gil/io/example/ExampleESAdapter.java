@@ -38,6 +38,8 @@ import gil.io.ExternalSystemAdapter;
 import gil.common.IProgressEventListener;
 import gil.common.ProgressChangedEventArgs;
 import gil.common.Result;
+import gil.common.ValueResult;
+import gil.core.SimTime;
 
 /**
  * This class exemplifies the implementation of the ExternalSystemAdapter interface. It works in pair with the
@@ -84,7 +86,7 @@ public class ExampleESAdapter extends ExternalSystemAdapter {
         _logger.info("Disconnect called.");
     }
 
-    public Result writeSignalData(ByteBuffer values) throws IOException {
+    public Result writeSignalData(ByteBuffer values, SimTime origin) throws IOException {
         StringBuilder sb = new StringBuilder();
         sb.append("Values written to ES: ");
         for (SignalMetadata smd : _signalsToES) {
@@ -104,7 +106,7 @@ public class ExampleESAdapter extends ExternalSystemAdapter {
     }
 
     private long  _lastTransfer = 0;
-    public Result readSignalData(ByteBuffer destBuf) throws IOException {
+    public ValueResult<SimTime> readSignalData(ByteBuffer destBuf) throws IOException {
         long t = (System.currentTimeMillis() / 1000);
         if (t == _lastTransfer)
             return null;
@@ -115,7 +117,7 @@ public class ExampleESAdapter extends ExternalSystemAdapter {
                 destBuf.putFloat((float)((++i) + _lastTransfer % 10 + 10));
             }
         }        
-        return new Result(true);
+        return new ValueResult<SimTime>(new SimTime());
     }
 
 

@@ -103,11 +103,12 @@ public interface IProcessModelAdapter extends IControlCommandInvokeable {
      * backs the ByteBuffer is accessed directly. Using put methods, i.e. putFloat, putInt, putShort etc. is safe.
      * @return Null or a result object indicating success or failure. When there is no data available null is returned.
      * A failure will indicate to the caller that this read was unsuccessful but subsequent reads may succeed.
-     * An IOException shall be thrown for unrecoverable serious failures.
+     * An IOException shall be thrown for unrecoverable serious failures. On success the result object will
+     * contain the time from which the data originates.
      * @throws IOException Thrown when there is a serious failure to force the caller to disconnect from the
      * process model and reconnect.
      */
-    Result readSignalData(ByteBuffer destBuf) throws IOException;
+    ValueResult<SimTime> readSignalData(ByteBuffer destBuf) throws IOException;
 
     /**
      * Writes process data.
@@ -116,14 +117,15 @@ public interface IProcessModelAdapter extends IControlCommandInvokeable {
      * @param values A buffer containing the sequence of signal values to be written to the process model.
      * The number of signal values and their data type must correspond to the sequence of signal metadata given in
      * a previous call to {@link #setup(gil.core.SignalMetadata[], gil.core.SignalMetadata[], gil.common.Parameters) setup()}.
+     * @param origin The time from when the data originates.
      * @return A result object indicating success or failure. A failure will indicate to the caller that
-     * this write was unsuccessful but subsequent writes may succeed. The caller will not retry to rewrite
-     * the same signal values. However, the caller will continue to call this method for new data.
+     * this write was unsuccessful but subsequent writes may succeed. The caller shall not retry to rewrite
+     * the same signal values. However, the caller can continue to call this method for new data.
      * An IOException is thrown for unrecoverable serious failures.
      * @throws IOException Thrown when there is a serious failure to force the caller to disconnect from the
      * process model and reconnect.
      */
-    Result writeSignalData(ByteBuffer values) throws IOException;
+    Result writeSignalData(ByteBuffer values, SimTime origin) throws IOException;
 
     /**
      * Returns the current date and time of the process model simulation clock. The returned time will be used by the

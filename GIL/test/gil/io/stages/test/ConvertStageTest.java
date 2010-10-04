@@ -310,14 +310,14 @@ public class ConvertStageTest {
 
         HashMap<String, String> params = new HashMap<String, String>();
         params.put("doBypass", "true");
-        testObject.invokeControlCommand(new Command("bypass", params));
+        testObject.invokeControlCommand(new Command("bypass", params, null));
         values.rewind();
         testObject.processSignals(values, DataflowDirection.ToES);
         values.rewind();
         assertEquals(200, values.getFloat(), 0.001);
 
         params.put("doBypass", "false");
-        testObject.invokeControlCommand(new Command("bypass", params));
+        testObject.invokeControlCommand(new Command("bypass", params, null));
         values.rewind();
         testObject.processSignals(values, DataflowDirection.ToES);
         values.rewind();

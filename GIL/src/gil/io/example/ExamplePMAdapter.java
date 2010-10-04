@@ -81,7 +81,7 @@ public class ExamplePMAdapter implements IProcessModelAdapter {
         _logger.info("Disconnect called.");
     }
     private static int  _transferCount = 0;
-    public Result readSignalData(ByteBuffer destBuf) throws IOException {
+    public ValueResult<SimTime> readSignalData(ByteBuffer destBuf) throws IOException {
         int i = 0;
         for (SignalMetadata smd : _signalsToES) {
             for (int elm = 0; elm < smd.getLength(); elm++) {
@@ -89,10 +89,10 @@ public class ExamplePMAdapter implements IProcessModelAdapter {
             }
         }
         ++_transferCount;
-        return new Result(true);
+        return new ValueResult<SimTime>(currentSimTime());
     }
     
-    public Result writeSignalData(ByteBuffer values) throws IOException {
+    public Result writeSignalData(ByteBuffer values, SimTime origin) throws IOException {
         StringBuilder sb = new StringBuilder();
         sb.append("Values written to PM: ");
         for (SignalMetadata smd : _signalsToPM) {
@@ -133,7 +133,7 @@ public class ExamplePMAdapter implements IProcessModelAdapter {
         // Fake FREEZE every minute at second 55
         if (currentSimTime().second() == 55) {
             commands = new Command[1];
-            commands[0] = new Command("FREEZE");
+            commands[0] = new Command("FREEZE", currentSimTime());
             _currentState = SimState.FREEZE;
             _commandRequested = true;
         }
@@ -142,14 +142,14 @@ public class ExamplePMAdapter implements IProcessModelAdapter {
         if (currentSimTime().second() == 0) {
             commands = new Command[1];
             Map<String, String> params = new HashMap<String, String>() {{put("icNo", Integer.toString(currentSimTime().minute()));}};
-            commands[0] = new Command("LOAD_IC", params);
+            commands[0] = new Command("LOAD_IC", params, currentSimTime());
             _commandRequested = true;
         }
 
         // Fake RUN every minute at second 15
         if (currentSimTime().second() == 15) {
             commands = new Command[1];
-            commands[0] = new Command("RUN");
+            commands[0] = new Command("RUN", currentSimTime());
             _currentState = SimState.RUN;
             _commandRequested = true;
         }

@@ -25,11 +25,12 @@ import gil.common.InvalidParameterException;
 import gil.common.Parameters;
 import gil.core.Command;
 import gil.common.Result;
+import gil.common.ValueResult;
 import gil.core.CommandDescriptor;
 import gil.core.SignalMetadata;
 import gil.core.SoftwareInfo;
 import gil.core.SystemStatus;
-
+import gil.core.SimTime;
 
 /** 
  * The common abstract class to be implemented for every new type of external system to be integrated to the
@@ -185,14 +186,15 @@ public abstract class ExternalSystemAdapter implements IControlCommandInvokeable
      * @param values A buffer containing the sequence of signal values to be written to the external system.
      * The number of signal values and their data type must correspond to the sequence of signal meta data given in
      * a previous call to {@link #setup(gil.core.SignalMetadata[], gil.core.SignalMetadata[], gil.common.Parameters) setup()}.
+     * @param origin The time from when the data originates.
      * @return A result object indicating success or failure. A failure will indicate to the caller that
-     * this write was unsuccessful but subsequent writes may succeed. The caller will not retry to rewrite
-     * the same signal values. However, the caller will continue to call this method for new data.
+     * this write was unsuccessful but subsequent writes may succeed. The caller shall not retry to rewrite
+     * the same signal values. However, the caller can continue to call this method for new data.
      * An IOException is thrown for unrecoverable serious failures.
      * @throws IOException Thrown when there is a serious failure to force the caller to disconnect from the
      * external system and reconnect.
      */
-    public abstract Result writeSignalData(ByteBuffer values) throws IOException;
+    public abstract Result writeSignalData(ByteBuffer values, SimTime origin) throws IOException;
 
     /**
      * Reads process data.
@@ -201,20 +203,21 @@ public abstract class ExternalSystemAdapter implements IControlCommandInvokeable
      * @param destBuf If data is available this buffer will be populated with signal values. The number of signal
      * values and their data type must correspond to the sequence of signal meta data given in a previous call to
      * {@link #setup(gil.core.SignalMetadata[], gil.core.SignalMetadata[], gil.common.Parameters) setup()}.
-     * The given ByteBuffer has memory allocated just enough to contain the expected signal values. 
+     * The given ByteBuffer must have memory allocated enough to contain the expected signal values.
      * <p>
      * When this operation is called, the given ByteBuffer has a preset byte order (endianness). The caller
-     * expects data to be added in that byte order. This has to be taken into consideration only if the byte array that
+     * can expect data to be added in that byte order. This has to be taken into consideration only if the byte array that
      * backs the ByteBuffer is accessed directly. Using put methods, i.e. putFloat, putInt, putShort etc. is safe.
      * <p>
      * This method may only be called if {@link #isReadEventDriven()} returns false.
      * @return Null or a result object indicating success or failure. When there is no data available null is returned.
      * A failure will indicate to the caller that this read was unsuccessful but subsequent reads may succeed.
-     * An IOException shall be thrown for unrecoverable serious failures.
+     * An IOException is thrown for unrecoverable serious failures. On success the result object will
+     * contain the time from when the data originates.
      * @throws IOException Thrown when there is a serious failure to force the caller to disconnect from the
      * external system and reconnect.
      */
-    public abstract Result readSignalData(ByteBuffer destBuf) throws IOException;
+    public abstract ValueResult<SimTime> readSignalData(ByteBuffer destBuf) throws IOException;
 
     /**
      * Returns software info such as version info.

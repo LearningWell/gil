@@ -18,18 +18,31 @@
 */
 package gil.core;
 
-import java.util.ArrayDeque;
+import java.nio.ByteBuffer;
 
 /**
- * Class containing context data to be shared between the two threads hadling the communication
- * with the external system and the process models.
+ *
  * @author Göran Larsson @ LearningWell AB
  */
-public class IntegrationContext {
+public class Data {
+    private final SimTime _origin;
+    private final ByteBuffer _data;
 
-    // Theese are shared between threads and concurrency issues must be handled
-    public final ArrayDeque<Data> pendingTransferToPM = new ArrayDeque<Data>();
-    public final ArrayDeque<Data> pendingTransferToES = new ArrayDeque<Data>();
-    public final ArrayDeque<Command> pendingSimCommands = new ArrayDeque<Command>();
-    public volatile long esFrameCount = 0;
+    public Data(ByteBuffer data, SimTime origin) {
+        _data = data;
+        _origin = origin;
+    }
+
+    public Data(ByteBuffer data) {
+        _data = data;
+        _origin = new SimTime();
+    }
+
+    public SimTime getOrigin() {
+        return _origin;
+    }
+
+    public ByteBuffer getData() {
+        return _data;
+    }
 }
