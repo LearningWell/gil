@@ -193,14 +193,14 @@ public interface IProcessModelAdapter extends IControlCommandInvokeable {
      int getState();
 
     /**
-     * Adds a listener to receive progress change notifications.
+     * Sets a listener to receive progress change notifications.
      * <p>
-     * @param listener The listener that subscibes for notifications when progress changes. The listeners must
-     * handle concurrency since they may be called from separate threads.
-     * @return true if the implemantation supports progress change notifications and the caller
+     * @param listener The listener that subscribes for notifications when progress changes. The listeners must
+     * handle concurrency since it may be called from separate threads.
+     * @return true if the implementation supports progress change notifications and the caller
      * can expect to receive notifications. Returns false when progress change notifications are not supported.
      */
-     boolean addProgressChangeListener(IProgressEventListener listener);
+     boolean setProgressChangeListener(IProgressEventListener listener);
 
     /**
      * Returns a list of control commands that can be invoked from client software.

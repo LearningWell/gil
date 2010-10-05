@@ -163,10 +163,8 @@ public class ExampleESAdapter extends ExternalSystemAdapter {
         return new Result(true);
     }
 
-    public boolean addProgressChangeListener(IProgressEventListener listener) {
+    public void setProgressChangeListener(IProgressEventListener listener) {
         _progressListeners.add(listener);
-        return true; // return true to indicate that the listener has been added and will bi notified on
-                      // progress changes and/or
     }
 
     public CommandDescriptor[] availableControlCommands() {
@@ -274,7 +272,7 @@ public class ExampleESAdapter extends ExternalSystemAdapter {
     }
 
     @Override
-    public void addSignalDataEventListener(ISignalDataListener listener) {
+    public void setSignalDataEventListener(ISignalDataListener listener) {
         throw new UnsupportedOperationException("Not supported.");
     }
 }

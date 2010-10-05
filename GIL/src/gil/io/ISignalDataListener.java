@@ -19,7 +19,7 @@
 package gil.io;
 
 import gil.common.Result;
-import java.io.IOException;
+import gil.core.SimTime;
 import java.nio.ByteBuffer;
 
 /**
@@ -27,5 +27,5 @@ import java.nio.ByteBuffer;
  * @author Göran Larsson @ LearningWell AB
  */
 public interface ISignalDataListener {
-    public void dataChanged(Result result, ByteBuffer data, IOException ex);
+    public void dataChanged(ByteBuffer data, SimTime origin, Result result, Throwable ex);
 }

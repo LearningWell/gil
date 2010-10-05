@@ -176,7 +176,7 @@ public class ExamplePMAdapter implements IProcessModelAdapter {
         return _currentState;
     }
 
-    public boolean addProgressChangeListener(IProgressEventListener listener) {
+    public boolean setProgressChangeListener(IProgressEventListener listener) {
         return false; // return false to indicate that this implementation of the
                       // adapter will not notify the hosting software on progress changes.
     }

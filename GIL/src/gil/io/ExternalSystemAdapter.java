@@ -69,8 +69,8 @@ public abstract class ExternalSystemAdapter implements IControlCommandInvokeable
      * Tells whether or not this adapter reports progress.
      * <p>
      * True if listeners may be added by calling
-     * {@link ExternalSystemAdapter#addProgressChangeListener(gil.common.IProgressEventListener)
-     * ExternalSystemAdapter.addProgressChangeListener()}.
+     * {@link ExternalSystemAdapter#setProgressChangeListener(gil.common.IProgressEventListener)
+     * ExternalSystemAdapter.setProgressChangeListener()}.
      * <p>
      * Listeners shall receive progress info when actions are executed.
      *
@@ -107,7 +107,7 @@ public abstract class ExternalSystemAdapter implements IControlCommandInvokeable
      * <p>
      * If false {@link  } process data can be retrieved by calling {@link #readSignalData(java.nio.ByteBuffer)}.
      * When true is returned a listener shall be registered by calling
-     * {@link #addSignalDataEventListener(gil.io.ISignalDataListener).
+     * {@link #setSignalDataEventListener(gil.io.ISignalDataListener).
      */
     public abstract  boolean isReadEventDriven();
    
@@ -280,15 +280,13 @@ public abstract class ExternalSystemAdapter implements IControlCommandInvokeable
 
 
     /**
-     * Adds a listener to receive progress change notifications.
+     * Sets a listener to receive progress change notifications.
      * <p>
      * May only be called if {@link #reportsProgress()} returns true.
      * @param listener The listener that subscribes for notifications when progress changes. The listeners must
-     * handle concurrency since they may be called from separate threads.
-     * @return true if the implementation supports progress change notifications and the caller
-     * can expect to receive notifications. Returns false when progress change notifications are not supported.
+     * handle concurrency since it may be called from separate threads.
      */
-    public abstract boolean addProgressChangeListener(IProgressEventListener listener);
+    public abstract void setProgressChangeListener(IProgressEventListener listener);
 
 
     /**
@@ -299,7 +297,7 @@ public abstract class ExternalSystemAdapter implements IControlCommandInvokeable
      * @param listener The listener that subscribes for notifications when data changes. The listeners must
      * handle concurrency since they may be called from separate threads.
      */
-    public abstract void addSignalDataEventListener(ISignalDataListener listener);
+    public abstract void setSignalDataEventListener(ISignalDataListener listener);
 
     /**
      * Returns a list of control commands that can be invoked from client software.

@@ -29,10 +29,12 @@ import gil.common.CurrentTime;
 import gil.io.ExternalSystemAdapter;
 import gil.common.GILConfiguration;
 import gil.common.IInvokeable;
+import gil.common.IProgressEventListener;
 import gil.common.Invoker;
 import gil.common.Result;
 import gil.common.Timeout;
 import gil.common.ValueResult;
+import gil.io.ISignalDataListener;
 
 /**
  * This is the logic separated from the controlling thread to handle the communication with the external system.
@@ -42,7 +44,7 @@ import gil.common.ValueResult;
  *
  * @author Göran Larsson @ LearningWell AB
  */
-public class ExternalSystemProcedure  implements IProcedure {
+public class ExternalSystemProcedure  implements IProcedure, ISignalDataListener {
 
     private static Logger _logger = Logger.getLogger(ExternalSystemProcedure.class);
 
@@ -65,6 +67,7 @@ public class ExternalSystemProcedure  implements IProcedure {
     private volatile int _writeFrameCount;
     private volatile int _readFrameCount;
     private volatile SystemStatus _disconnectedStatus = new SystemStatus(SystemStatus.UNKNOWN, "");
+    private volatile Throwable _pendingException = null;
     
     /**
      * @param esAdapter The external system boundary class.
@@ -81,6 +84,35 @@ public class ExternalSystemProcedure  implements IProcedure {
         _valuesBufSize = valuesBufSize;
         _readTimeout = new Timeout(config.getESAdapterReadPollRate());
         _currentState = new DisconnectedState();
+        if (esAdapter.isReadEventDriven()) {
+            esAdapter.setSignalDataEventListener(this);
+        }
+    }
+
+    public void dataChanged(ByteBuffer data, SimTime origin, Result result, Throwable ex) {
+        handleReceivedData(data, origin, result);
+        if (ex != null) {
+            _pendingException = ex;
+        }
+    }
+
+    private void handleReceivedData(ByteBuffer data, SimTime origin, Result result) {
+        if (result.isSuccess()) {
+            data.rewind();
+            synchronized(_context) {
+                if (!_context.pendingTransferToPM.isEmpty()) {
+                    _droppedExternalSystemFrames += _context.pendingTransferToPM.size();
+                    _logger.warn(String.format("Dropped %d ES-frame(s) due to still pending transfers.", _context.pendingTransferToPM.size()));
+                    _context.pendingTransferToPM.clear();
+                }
+                _context.pendingTransferToPM.add(new Data(data, origin));
+            }
+            ++_readFrameCount;
+        }
+        else {
+            _logger.warn("Failed to read: " + result.getErrorDescription());
+            ++_dataReadFailureCount;
+        }
     }
 
     public void runOnce(long currentTimeInMilliseconds) {
@@ -146,6 +178,7 @@ public class ExternalSystemProcedure  implements IProcedure {
         public IState handle(long currentTimeInMilliseconds)  {
             try {
                 _logger.debug("Try connect...");
+                _pendingException = null;
                 if (!_esAdapter.connect()) {
                     try {
                         Thread.sleep(1000);
@@ -182,36 +215,28 @@ public class ExternalSystemProcedure  implements IProcedure {
                     _frameCount = newFrameCount;
                 }
 
-                if (_valuesBuf == null) {
-                     // Must allocate direct since the buffer may be used across boundaries to native code (JNI).
-                    _valuesBuf = ByteBuffer.allocateDirect(_valuesBufSize);
-                    _valuesBuf.order(_config.getESAdapterByteOrder());
-                }
-
-                if (_readTimeout.isTimeout(currentTimeInMilliseconds)) {
-                    _readTimeout.reset(currentTimeInMilliseconds);
-                    ValueResult<SimTime> result = _esAdapter.readSignalData(_valuesBuf);
-                    if (result != null) {
-                        if (result.isSuccess()) {
-                            _valuesBuf.rewind();
-                            synchronized(_context) {
-                                if (!_context.pendingTransferToPM.isEmpty()) {
-                                    _droppedExternalSystemFrames += _context.pendingTransferToPM.size();
-                                    _logger.warn(String.format("Dropped %d ES-frame(s) due to still pending transfers.", _context.pendingTransferToPM.size()));
-                                    _context.pendingTransferToPM.clear();
-                                }
-                                _context.pendingTransferToPM.add(new Data(_valuesBuf, result.getReturnValue()));
-                            }
-                            ++_readFrameCount;
-                        }
-                        else {
-                            _logger.warn("Failed to read: " + result.getErrorDescription());
-                            ++_dataReadFailureCount;
-                        }
+                if (_esAdapter.isReadEventDriven()) {
+                    if (_pendingException != null)
+                        throw _pendingException;
+                } 
+                else {
+                    if (_valuesBuf == null) {
+                         // Must allocate direct since the buffer may be used across boundaries to native code (JNI).
+                        _valuesBuf = ByteBuffer.allocateDirect(_valuesBufSize);
+                        _valuesBuf.order(_config.getESAdapterByteOrder());
                     }
-                     // Must allocate direct since the buffer may be used across boundaries to native code (JNI).
-                    _valuesBuf = ByteBuffer.allocateDirect(_valuesBufSize);
-                    _valuesBuf.order(_config.getESAdapterByteOrder());
+
+                    if (_readTimeout.isTimeout(currentTimeInMilliseconds)) {
+                        _readTimeout.reset(currentTimeInMilliseconds);
+                        ValueResult<SimTime> result = _esAdapter.readSignalData(_valuesBuf);
+
+                        if (result != null) {
+                            handleReceivedData(_valuesBuf, result.getReturnValue(), result);
+                        }
+                         // Must allocate direct since the buffer may be used across boundaries to native code (JNI).
+                        _valuesBuf = ByteBuffer.allocateDirect(_valuesBufSize);
+                        _valuesBuf.order(_config.getESAdapterByteOrder());
+                    }
                 }
 
                 Command nextCommand;
@@ -243,14 +268,15 @@ public class ExternalSystemProcedure  implements IProcedure {
                 _logger.error("Failure in communication with external system. ", ex);
                 _disconnectedStatus = new SystemStatus(SystemStatus.NOK, ex.getMessage());
                 _reconnect = true;
+            } catch(Throwable ex) {
+                throw new RuntimeException(ex);
             }
             if (_reconnect) {
                 _esAdapter.disconnect();                
                 return new DisconnectedState();
             }
             return this;
-        }
-
+        }        
         private void transferSignalDataES(Data values) throws IOException {
             Result result = _esAdapter.writeSignalData(values.getData(), values.getOrigin());
             if (result.isSuccess()) {

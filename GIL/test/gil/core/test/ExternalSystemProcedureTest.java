@@ -18,6 +18,8 @@
 */
 package gil.core.test;
 
+import org.junit.After;
+import org.junit.Before;
 import gil.common.ValueResult;
 import gil.common.Result;
 import java.io.IOException;
@@ -40,14 +42,26 @@ public class ExternalSystemProcedureTest {
     final static int BUF_SIZE = 8;
     IntegrationContext context = new IntegrationContext();
 
-    static GILConfiguration config = mock(GILConfiguration.class);
+    static final GILConfiguration config = mock(GILConfiguration.class);
     static {
         when(config.getESAdapterReadPollRate()).thenReturn(1);
         when(config.getPMAdapterByteOrder()).thenReturn(ByteOrder.BIG_ENDIAN);
     }
     
     ExternalSystemAdapter _esAdapterMock = mock(ExternalSystemAdapter.class);
-    ExternalSystemProcedure _procedure = new ExternalSystemProcedure(_esAdapterMock, context, BUF_SIZE, config);
+    ExternalSystemProcedure _procedure;
+    
+
+    @Before
+    public void setUp() {
+        setupESAdapterMock();
+        _procedure = new ExternalSystemProcedure(_esAdapterMock, context, BUF_SIZE, config);
+    }
+
+    @After
+    public void tearDown() {
+    }
+
 
     ////////////////////////////////////////////////////////////////////////////////////////
     // Tests of successful and unsuccessful establishment of a connection to the external system
@@ -128,7 +142,7 @@ public class ExternalSystemProcedureTest {
 
     @Test
     public void expect_state_transition_from_connected_to_disconnected_when_reconnect_is_called() throws Exception {
-        _doFirstRunOnceCallToConnect();
+        doFirstRunOnceCallToConnect();
         _procedure.reconnect();
         _procedure.runOnce(1);
         verify(_esAdapterMock).disconnect();
@@ -140,7 +154,7 @@ public class ExternalSystemProcedureTest {
     ////////////////////////////////////////////////////////////////////////////////////////
     @Test
     public void expect_single_pending_command_to_be_executed() throws Exception {
-        _doFirstRunOnceCallToConnect();
+        doFirstRunOnceCallToConnect();
         context.pendingSimCommands.add(new Command("FREEZE", null));
 
         when(_esAdapterMock.executeSimCommand((Command)any())).thenReturn(new Result(true));
@@ -158,7 +172,7 @@ public class ExternalSystemProcedureTest {
 
         ArgumentCaptor<Command> argument = ArgumentCaptor.forClass(Command.class);
 
-        _doFirstRunOnceCallToConnect();
+        doFirstRunOnceCallToConnect();
         context.pendingSimCommands.add(new Command("FREEZE", null));
         context.pendingSimCommands.add(new Command("RUN", null));
 
@@ -181,7 +195,7 @@ public class ExternalSystemProcedureTest {
     @Test
     public void expect_disconnect_from_ES_when_an_IOException_is_thrown_during_execution_of_a_command() throws Exception {
 
-        _doFirstRunOnceCallToConnect();
+        doFirstRunOnceCallToConnect();
         context.pendingSimCommands.add(new Command("FREEZE", null));
         context.pendingSimCommands.add(new Command("RUN", null));
 
@@ -196,7 +210,7 @@ public class ExternalSystemProcedureTest {
     @Test
     public void expect_command_execution_failure_count_to_be_incremented_if_failure_when_executing_command() throws Exception {
 
-        _doFirstRunOnceCallToConnect();
+        doFirstRunOnceCallToConnect();
         context.pendingSimCommands.add(new Command("FREEZE", null));
         context.pendingSimCommands.add(new Command("RUN", null));
 
@@ -214,7 +228,7 @@ public class ExternalSystemProcedureTest {
     @Test
     public void expect_single_pending_data_to_be_written() throws Exception {
 
-        _doFirstRunOnceCallToConnect();
+        doFirstRunOnceCallToConnect();
         final ByteBuffer buffer = ByteBuffer.allocate(BUF_SIZE);
         buffer.putInt(1);
         final SimTime time = new SimTime();
@@ -234,7 +248,7 @@ public class ExternalSystemProcedureTest {
     @Test
     public void expect_the_latest_data_to_be_written_when_multiple_data_is_pending() throws Exception {
 
-        _doFirstRunOnceCallToConnect();
+        doFirstRunOnceCallToConnect();
         
         final ByteBuffer buf0 = ByteBuffer.allocate(BUF_SIZE);
         final ByteBuffer buf1 = ByteBuffer.allocate(BUF_SIZE);        
@@ -256,7 +270,7 @@ public class ExternalSystemProcedureTest {
     @Test
     public void expect_disconnect_from_ES_when_an_IOException_is_thrown_during_data_write() throws Exception {
 
-        _doFirstRunOnceCallToConnect();
+        doFirstRunOnceCallToConnect();
 
         final ByteBuffer buf0 = ByteBuffer.allocate(BUF_SIZE);
         final ByteBuffer buf1 = ByteBuffer.allocate(BUF_SIZE);
@@ -275,7 +289,7 @@ public class ExternalSystemProcedureTest {
     @Test
     public void expect_data_write_failure_count_to_be_incremented_if_failure_when_writing_data() throws Exception {
 
-        _doFirstRunOnceCallToConnect();
+        doFirstRunOnceCallToConnect();
         final ByteBuffer buf0 = ByteBuffer.allocate(BUF_SIZE);
         final ByteBuffer buf1 = ByteBuffer.allocate(BUF_SIZE);
         context.pendingTransferToES.add(new Data(buf0));
@@ -296,7 +310,7 @@ public class ExternalSystemProcedureTest {
     ////////////////////////////////////////////////////////////////////////////////////////
     @Test
     public void expect_added_pending_transfers_to_PM_when_there_is_data_available() throws Exception {
-        _doFirstRunOnceCallToConnect();
+        doFirstRunOnceCallToConnect();
 
         when(_esAdapterMock.readSignalData((ByteBuffer)any())).thenReturn(new ValueResult<SimTime>((SimTime)null)).thenReturn(null);
 
@@ -311,7 +325,7 @@ public class ExternalSystemProcedureTest {
     @Test
     public void expect_no_added_pending_transfers_to_PM_when_there_is_no_data_available() throws Exception {
 
-        _doFirstRunOnceCallToConnect();
+        doFirstRunOnceCallToConnect();
 
         when(_esAdapterMock.readSignalData((ByteBuffer)any())).thenReturn(null);
 
@@ -325,7 +339,7 @@ public class ExternalSystemProcedureTest {
     @Test
     public void expect_data_read_failure_count_to_be_incremented_if_failure_when_reading_data() throws Exception {
 
-        _doFirstRunOnceCallToConnect();
+        doFirstRunOnceCallToConnect();
 
         when(_esAdapterMock.readSignalData((ByteBuffer)any())).thenReturn(new ValueResult<SimTime>("an error")).thenReturn(null);
 
@@ -338,7 +352,7 @@ public class ExternalSystemProcedureTest {
     @Test
     public void expect_disconnect_from_ES_when_an_IOException_is_thrown_during_data_read() throws Exception {
 
-        _doFirstRunOnceCallToConnect();
+        doFirstRunOnceCallToConnect();
 
         when(_esAdapterMock.readSignalData((ByteBuffer)any())).thenThrow(new IOException());
 
@@ -353,7 +367,7 @@ public class ExternalSystemProcedureTest {
     public void expect_dropped_External_system_frames_to_be_incremented_when_more_than_a_single_data_transfer_is_pending() throws Exception {
         ByteBuffer buf0 = ByteBuffer.allocate(BUF_SIZE);
 
-        _doFirstRunOnceCallToConnect();
+        doFirstRunOnceCallToConnect();
 
         context.pendingTransferToPM.add(new Data(buf0));
         context.pendingTransferToPM.add(new Data(buf0));
@@ -367,14 +381,13 @@ public class ExternalSystemProcedureTest {
         assertEquals(1, context.pendingTransferToPM.size());
     }
 
-
     ////////////////////////////////////////////////////////////////////////////////////////
     // timeStepControl calls
     ////////////////////////////////////////////////////////////////////////////////////////
     @Test
     public void expect_timeStepControl_to_be_called_corresponding_to_esFrameCount() throws Exception {
 
-        _doFirstRunOnceCallToConnect();
+        doFirstRunOnceCallToConnect();
 
         when(_esAdapterMock.timeStepControl()).thenReturn(new Result(true));
 
@@ -389,7 +402,7 @@ public class ExternalSystemProcedureTest {
 
     @Test
     public void expect_data_read_failure_count_to_be_incremented_when_timeStepControl_indicates_failure() throws Exception {
-        _doFirstRunOnceCallToConnect();
+        doFirstRunOnceCallToConnect();
 
         when(_esAdapterMock.timeStepControl()).thenReturn(new Result(true));
 
@@ -414,7 +427,7 @@ public class ExternalSystemProcedureTest {
     @Test
     public void expect_timeStepControl_NOT_to_be_called_when_capability_isSynchronous_is_set_to_false() throws Exception {
               
-        _doFirstRunOnceCallToConnect();
+        doFirstRunOnceCallToConnect();
         when(_esAdapterMock.isSynchronous()).thenReturn(false);
         when(_esAdapterMock.timeStepControl()).thenReturn(new Result(true));
 
@@ -426,7 +439,7 @@ public class ExternalSystemProcedureTest {
 
     @Test
     public void expect_es_state_to_be_NA_when_capability_canReportState_is_set_to_false() throws Exception {
-        _doFirstRunOnceCallToConnect();
+        doFirstRunOnceCallToConnect();
         when(_esAdapterMock.canReportState()).thenReturn(false);
 
         assertEquals(SimState.NOT_AVAILABLE, _procedure.getExternalSystemState());
@@ -434,7 +447,7 @@ public class ExternalSystemProcedureTest {
 
     @Test
     public void expect_es_state_to_be_NA_when_capability_canReportStatus_is_set_to_false() throws Exception {
-        _doFirstRunOnceCallToConnect();
+        doFirstRunOnceCallToConnect();
         when(_esAdapterMock.canReportStatus()).thenReturn(false);
 
         assertEquals(SystemStatus.NOT_AVAILABLE, _procedure.getExternalSystemStatus().getStatusCode());
@@ -442,7 +455,7 @@ public class ExternalSystemProcedureTest {
 
     @Test
     public void do_not_expect_simulator_commands_to_be_executed_when_capability_expectsSimulatorCommands_is_set_to_false() throws Exception {
-        _doFirstRunOnceCallToConnect();
+        doFirstRunOnceCallToConnect();
         when(_esAdapterMock.expectsSimulatorCommands()).thenReturn(false);
         context.pendingSimCommands.add(new Command("FREEZE", null));
 
@@ -459,7 +472,7 @@ public class ExternalSystemProcedureTest {
     ////////////////////////////////////////////////////////////////////////////////////////
     @Test
     public void expect_controlCommands_to_be_invoked_on_ESAdapter() throws Exception {
-        _doFirstRunOnceCallToConnect();
+        doFirstRunOnceCallToConnect();
 
         when(_esAdapterMock.timeStepControl()).thenReturn(new Result(true));
 
@@ -479,21 +492,22 @@ public class ExternalSystemProcedureTest {
         assertEquals("v1", argument.getValue().getParameter("p1"));
     }
 
-    private void _doFirstRunOnceCallToConnect() throws Exception {
-        when(_esAdapterMock.connect()).thenReturn(true);
-        when(_esAdapterMock.getStatus()).thenReturn(new SystemStatus(SystemStatus.OK, "its OK"));
-        when(_esAdapterMock.getState()).thenReturn(SimState.FREEZE);
-        when(_esAdapterMock.readSignalData((ByteBuffer)any())).thenReturn(null);
-
+    private void setupESAdapterMock() {
         when(_esAdapterMock.canReportState()).thenReturn(true);
         when(_esAdapterMock.canReportStatus()).thenReturn(true);
         when(_esAdapterMock.canShutDownAndPowerUp()).thenReturn(true);
         when(_esAdapterMock.expectsSimulatorCommands()).thenReturn(true);
         when(_esAdapterMock.isReadEventDriven()).thenReturn(false);
         when(_esAdapterMock.isSynchronous()).thenReturn(true);
+    }
+    
+    private void doFirstRunOnceCallToConnect() throws Exception {
+        when(_esAdapterMock.connect()).thenReturn(true);
+        when(_esAdapterMock.getStatus()).thenReturn(new SystemStatus(SystemStatus.OK, "its OK"));
+        when(_esAdapterMock.getState()).thenReturn(SimState.FREEZE);
+        when(_esAdapterMock.readSignalData((ByteBuffer)any())).thenReturn(null);
 
         when(_esAdapterMock.connect()).thenReturn(true);
         _procedure.runOnce(0);
     }
-  
 }

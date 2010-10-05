@@ -91,14 +91,14 @@ public class IntegrationExecutive {
         _pipeline = pipe;
 
         if (_externalSystem.reportsProgress()) {
-            _externalSystem.addProgressChangeListener(new IProgressEventListener() {
+            _externalSystem.setProgressChangeListener(new IProgressEventListener() {
                 public void progressChanged(ProgressChangedEventArgs args) {
                     _currentESActivity = args;
                 }
             });
         }
 
-        _processModel.addProgressChangeListener(new IProgressEventListener() {
+        _processModel.setProgressChangeListener(new IProgressEventListener() {
             public void progressChanged(ProgressChangedEventArgs args) {
                 _currentPMActivity = args;
             }

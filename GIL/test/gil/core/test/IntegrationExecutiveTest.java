@@ -69,7 +69,6 @@ public class IntegrationExecutiveTest {
         when(_esAdapter.getOperatingFrequency()).thenReturn(1);
         when(_esAdapter.getState()).thenReturn(SimState.UNKNOWN);
         when(_esAdapter.getStatus()).thenReturn(new SystemStatus(SystemStatus.UNKNOWN,""));
-        when(_esAdapter.addProgressChangeListener(any(IProgressEventListener.class))).thenReturn(false);
         when(_esAdapter.canReportState()).thenReturn(true);
         when(_esAdapter.canReportStatus()).thenReturn(true);
         when(_esAdapter.canShutDownAndPowerUp()).thenReturn(true);
@@ -78,7 +77,7 @@ public class IntegrationExecutiveTest {
         when(_esAdapter.isSynchronous()).thenReturn(true);
         when(_pmAdapter.getState()).thenReturn(SimState.UNKNOWN);
         when(_pmAdapter.getStatus()).thenReturn(new SystemStatus(SystemStatus.UNKNOWN,""));
-        when(_pmAdapter.addProgressChangeListener(any(IProgressEventListener.class))).thenReturn(false);
+        when(_pmAdapter.setProgressChangeListener(any(IProgressEventListener.class))).thenReturn(false);
         when(_pmAdapter.getOperatingFrequency()).thenReturn(1);
         when(_esAdapter.availableControlCommands()).thenReturn(new CommandDescriptor[0]);
         when(_pmAdapter.availableControlCommands()).thenReturn(new CommandDescriptor[0]);
@@ -201,7 +200,6 @@ public class IntegrationExecutiveTest {
         when(_pmAdapter.getOperatingFrequency()).thenReturn(1);
         when(_esAdapter.connect()).thenReturn(false);
         when(_pmAdapter.connect()).thenReturn(false);
-        when(_esAdapter.addProgressChangeListener(any(IProgressEventListener.class))).thenReturn(false);
         
         instance.start();
         instance.invokeExternalSystemCommand("cmd2", params);
@@ -222,7 +220,6 @@ public class IntegrationExecutiveTest {
         when(_pmAdapter.getOperatingFrequency()).thenReturn(1);
         when(_esAdapter.connect()).thenReturn(false);
         when(_pmAdapter.connect()).thenReturn(false);
-        when(_esAdapter.addProgressChangeListener(any(IProgressEventListener.class))).thenReturn(false);
 
         instance.start();
         instance.invokeProcessModelCommand("cmd2", params);
