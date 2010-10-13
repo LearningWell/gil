@@ -41,8 +41,18 @@ public class ConvertStage extends PipelineStage {
     private static Logger _logger = Logger.getLogger(ConvertStage.class);
 
     public class ConversionFactor {
-        public double gain;
-        public double offset;
+        public ConversionFactor(boolean enabled, int signalSizeInBytes) {
+            this.enabled = enabled;
+            this.signalSizeInBytes = signalSizeInBytes;
+        }
+        
+        public final boolean enabled;
+        public final int signalSizeInBytes;
+
+        public double gain = 1.0;
+        public double offset = 0;
+        public SignalMetadata.SignalDataType signalDataType = SignalMetadata.SignalDataType.Illegal;
+        public int signalValueCount = 1;
     }
     
     private ConversionFactor[] _factorsToES = new ConversionFactor[0];
@@ -54,52 +64,53 @@ public class ConvertStage extends PipelineStage {
             return;
         }
 
-        if (direction == DataflowDirection.ToES) {
-            int i = 0;
-            for (SignalMetadata md : getSignalsToES()) {
+        if (direction == DataflowDirection.ToES) {            
+            for (int i = 0; i < _factorsToES.length; i++) {
+                ConversionFactor factor = _factorsToES[i];
                 int pos = values.position();
-                for (int elm = 0; elm < md.getLength(); elm++) {
-                    int pos2 = values.position();
-                    if (md.getDataType() == SignalMetadata.SignalDataType.Float32) {
-                        double oldValue = values.getFloat();
-                        double newValue = (oldValue * _factorsToES[i].gain) + _factorsToES[i].offset;
-                        values.putFloat(pos2, (float)newValue);
-                    }
-                    if (md.getDataType() == SignalMetadata.SignalDataType.Float64) {
-                        double oldValue = values.getDouble();
-                        double newValue = (oldValue * _factorsToES[i].gain) + _factorsToES[i].offset;
-                        values.putDouble(pos2, newValue);
+                if (factor.enabled) {
+                    for (int elm = 0; elm < factor.signalValueCount; elm++) {
+                        int pos2 = values.position();
+                        if (factor.signalDataType == SignalMetadata.SignalDataType.Float32) {
+                            double oldValue = values.getFloat();
+                            double newValue = (oldValue * factor.gain) + factor.offset;
+                            values.putFloat(pos2, (float)newValue);
+                        }
+                        if (factor.signalDataType == SignalMetadata.SignalDataType.Float64) {
+                            double oldValue = values.getDouble();
+                            double newValue = (oldValue * factor.gain) + factor.offset;
+                            values.putDouble(pos2, newValue);
+                        }
                     }
                 }
-                values.position(pos + md.getBufferSize());
-                ++i;
+                values.position(pos + factor.signalSizeInBytes);
             }
+            return;
         }
-        else if (direction == DataflowDirection.ToPM) {
-            int i = 0;
-            for (SignalMetadata md : getSignalsToPM()) {
+        if (direction == DataflowDirection.ToPM) {
+            for (int i = 0; i < _factorsToPM.length; i++) {
+                ConversionFactor factor = _factorsToPM[i];
                 int pos = values.position();
-                for (int elm = 0; elm < md.getLength(); elm++) {
-                    int pos2 = values.position();
-
-                    if (md.getDataType() == SignalMetadata.SignalDataType.Float32) {
-                        double oldValue = values.getFloat();
-                        double newValue = (oldValue - _factorsToPM[i].offset) / _factorsToPM[i].gain;
-                        values.putFloat(pos2, (float)newValue);
-                    }
-                    if (md.getDataType() == SignalMetadata.SignalDataType.Float64) {
-                        double oldValue = values.getDouble();
-                        double newValue = (oldValue - _factorsToPM[i].offset) / _factorsToPM[i].gain;
-                        values.putDouble(pos2, newValue);
+                if (factor.enabled) {
+                    for (int elm = 0; elm < factor.signalValueCount; elm++) {
+                        int pos2 = values.position();
+                        if (factor.signalDataType == SignalMetadata.SignalDataType.Float32) {
+                            double oldValue = values.getFloat();
+                            double newValue = (oldValue - factor.offset) / factor.gain;
+                            values.putFloat(pos2, (float)newValue);
+                        }
+                        if (factor.signalDataType == SignalMetadata.SignalDataType.Float64) {
+                            double oldValue = values.getDouble();
+                            double newValue = (oldValue - factor.offset) / factor.gain;
+                            values.putDouble(pos2, newValue);
+                        }
                     }
                 }
-                values.position(pos + md.getBufferSize());
-                ++i;
+                values.position(pos + factor.signalSizeInBytes);
             }
+            return;
         }
-        else {
-            throw new AssertionError("Unexpected DataflowDirection");
-        }
+        throw new AssertionError("Unexpected DataflowDirection");
     }
 
     @Override
@@ -127,18 +138,22 @@ public class ConvertStage extends PipelineStage {
     private ConversionFactor[] _createFactors(SignalMetadata[] signalMetadata) throws IllegalConfigurationException {
         ConversionFactor[] factors = new ConversionFactor[signalMetadata.length];
         for (int i = 0; i < signalMetadata.length; i++) {
-            ConversionFactor cf = new ConversionFactor();
+            ConversionFactor cf;
             String sPMMax = signalMetadata[i].getCustomAttributes().get("PMMax");
             String sPMMin = signalMetadata[i].getCustomAttributes().get("PMMin");
             String sESMax = signalMetadata[i].getCustomAttributes().get("ESMax");
             String sESMin = signalMetadata[i].getCustomAttributes().get("ESMin");
             if (sPMMax == null && sPMMin == null && sESMax == null && sESMin == null) {
-                cf.gain = 1.0;
-                cf.offset = 0;
+                 cf = new ConversionFactor(false, signalMetadata[i].getBufferSize());
             } else {
                 try {
-                    cf.gain = (Double.parseDouble(sESMax) - Double.parseDouble(sESMin)) / (Double.parseDouble(sPMMax) - Double.parseDouble(sPMMin));
-                    cf.offset = Double.parseDouble(sESMin) - (cf.gain * Double.parseDouble(sPMMin));
+                    double gain = (Double.parseDouble(sESMax) - Double.parseDouble(sESMin)) / (Double.parseDouble(sPMMax) - Double.parseDouble(sPMMin));
+                    double offset = Double.parseDouble(sESMin) - (gain * Double.parseDouble(sPMMin));
+                    cf = new ConversionFactor(true, signalMetadata[i].getBufferSize());
+                    cf.signalDataType = signalMetadata[i].getDataType();
+                    cf.signalValueCount = signalMetadata[i].getLength();
+                    cf.gain = gain;
+                    cf.offset = offset;
                     checkSupportedDatatypes(signalMetadata[i]);
 
                 } catch (NullPointerException ex) {

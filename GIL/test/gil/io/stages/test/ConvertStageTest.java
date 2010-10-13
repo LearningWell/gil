@@ -29,6 +29,7 @@ import gil.io.stages.ConvertStage;
 import gil.core.IllegalConfigurationException;
 import gil.core.SignalMetadata;
 import gil.core.SignalMetadata.DataflowDirection;
+import java.nio.ByteOrder;
 
 /**
  *
@@ -194,30 +195,36 @@ public class ConvertStageTest {
             new SignalMetadata(SignalMetadata.SignalType.Analog, SignalMetadata.SignalDataType.Float32, 1,
                 DataflowDirection.ToES, "pmid1", "pmid2", "", config0),
             new SignalMetadata(SignalMetadata.SignalType.Analog, SignalMetadata.SignalDataType.Float32, 1,
-                DataflowDirection.ToES, "pmid1", "pmid2", "", config1)
+                DataflowDirection.ToES, "pmid1", "pmid2", "", config1),
+            new SignalMetadata(SignalMetadata.SignalType.Analog, SignalMetadata.SignalDataType.Float32, 1,
+                DataflowDirection.ToES, "pmid1", "pmid2", "", config0)
         };
 
         testObject.setup("anId", new SignalMetadata[0], sm, new Parameters());
 
-        ByteBuffer values = ByteBuffer.allocate(8);
+        ByteBuffer values = ByteBuffer.allocate(12);
         values.putFloat(200);
         values.putFloat(1000);
+        values.putFloat(200);
         values.rewind();
 
         testObject.processSignals(values, DataflowDirection.ToES);
         values.rewind();
         assertEquals(20, values.getFloat(), 0.001);
         assertEquals(1000, values.getFloat(), 0.001);
+        assertEquals(20, values.getFloat(), 0.001);
 
         values.rewind();
         values.putFloat(10);
         values.putFloat(300);
+        values.putFloat(10);
         values.rewind();
 
         testObject.processSignals(values, DataflowDirection.ToES);
         values.rewind();
         assertEquals(4, values.getFloat(), 0.001);
         assertEquals(300, values.getFloat(), 0.001);
+        assertEquals(4, values.getFloat(), 0.001);
     }
 
     @Test(expected=IllegalConfigurationException.class)
@@ -276,12 +283,20 @@ public class ConvertStageTest {
 
         int i = 0;
         ByteBuffer values = ByteBuffer.allocate(100000 * 4);
+        values.order(ByteOrder.BIG_ENDIAN);
         do {
             values.putFloat((float) i++);
         } while(values.hasRemaining());
 
         values.rewind();
-        testObject.processSignals(values, DataflowDirection.ToES);
+        long time = System.currentTimeMillis();
+        //for (int x = 0; x < 100; x++) {
+        //    values.rewind();
+            testObject.processSignals(values, DataflowDirection.ToES);
+        //}
+        long time2 = System.currentTimeMillis();
+
+        System.out.println("Total time:" + (time2 - time));
         values.rewind();
         assertEquals(4, values.getFloat(), 0.001);
         assertEquals(20, values.getFloat(99999 * 4), 0.001);
