@@ -89,10 +89,11 @@ public class ExternalSystemProcedure  implements IProcedure, ISignalDataListener
         }
     }
 
-    public void dataChanged(ByteBuffer data, SimTime origin, Result result, Throwable ex) {
-        handleReceivedData(data, origin, result);
+    public void dataChanged(ByteBuffer data, SimTime origin, Result result, Throwable ex) {        
         if (ex != null) {
             _pendingException = ex;
+        } else {
+            handleReceivedData(data, origin, result);
         }
     }
 
