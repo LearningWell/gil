@@ -45,7 +45,7 @@ public class SimState {
             put(SLOW, "Slow");
             put(FAST, "Fast");
             put(STEP, "Step");
-            put(STEP, "Not available");
+            put(NOT_AVAILABLE, "Not available");
         }
     };
 
